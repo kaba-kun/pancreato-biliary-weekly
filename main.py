@@ -3,18 +3,14 @@ import datetime
 import requests
 import xml.etree.ElementTree as ET
 from google import genai
-from google.genai import types
-import smtplib
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
 
 # ----------------------------------------------------
-# 1. PubMedから論文データ取得
+# 1. PubMedから論文データ取得 (胆管炎・結石のキーワードを追加)
 # ----------------------------------------------------
 def fetch_pubmed_papers():
     base_url = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils"
-    # 過去7日間の胆膵系論文を抽出するクエリ
-    query = '("pancreatitis"[Title/Abstract] OR "pancreatic"[Title/Abstract] OR "biliary"[Title/Abstract] OR "ERCP"[Title/Abstract] OR "EUS"[Title/Abstract] OR "cholangiocarcinoma"[Title/Abstract]) AND ("last 7 days"[PDat])'
+    # 胆管炎 (cholangitis)、総胆管結石 (choledocholithiasis / gallstone) を追加
+    query = '("pancreatitis"[Title/Abstract] OR "pancreatic"[Title/Abstract] OR "biliary"[Title/Abstract] OR "ERCP"[Title/Abstract] OR "EUS"[Title/Abstract] OR "cholangiocarcinoma"[Title/Abstract] OR "cholangitis"[Title/Abstract] OR "choledocholithiasis"[Title/Abstract] OR "gallstone"[Title/Abstract]) AND ("last 7 days"[PDat])'
     
     search_res = requests.get(f"{base_url}/esearch.fcgi", params={
         "db": "pubmed", "term": query, "retmode": "json", "retmax": 25
@@ -47,36 +43,44 @@ def fetch_pubmed_papers():
     return papers
 
 # ----------------------------------------------------
-# 2. Gemini APIでHTMLコンテンツ作成
+# 2. Gemini APIでスタイリッシュなHTMLを作成
 # ----------------------------------------------------
 def generate_digest_html(papers, date_str):
-    client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
+    client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
 
     prompt = f"""
-あなたは胆膵疾患領域のトップ専門医・研究者です。
-以下の{len(papers)}件の論文データ（対象期間：直近1週間）を解析し、Webサイトおよびメール配信用の「今週の胆膵疾患研究ハイライト」HTMLを作成してください。
+あなたは胆膵領域のトップ臨床医・研究者です。
+以下の{len(papers)}件の最新論文データから、世界水準のモダンで美しいWebダッシュボード風HTML（1ページ完結）を作成してください。
 
 対象日付: {date_str}
 論文データ:
 {papers}
 
-【デザイン・構造の要件】
-1. モダンで清潔感のある医療系デザイン（レスポンシブ対応、CSSはすべて <style> タグ内に記述）。
-2. 全体構成：
-   - ヘッダー：「今週の胆膵疾患研究ハイライト」（対象期間：{date_str}）
-   - 今週のトップハイライト (Top 3~4報)：臨床的インパクトが高いものを厳選し、簡潔なカード形式で提示。
-   - 領域別研究ハイライト：以下のようなカテゴリに分類して配置。
-     * 胆膵内視鏡・ERCP・EUS
-     * 急性膵炎・慢性膵炎・総胆管結石・胆管炎など胆膵の良性疾患
-     * 胆道がん・膵がん・腫瘍など胆膵の悪性疾患
-     * 肝移植・IgG4関連疾患・その他
-3. 各論文の掲載形式：
-   - 論文タイトル（英語 ＋ 日本語訳）
-   - 掲載誌・PMID（https://pubmed.ncbi.nlm.nih.gov/PMID/ への直リンク付き）
-   - 日本語要約（背景・主要結果・臨床的意義・研究の限界を2〜3文で明記）
-   - 英語要約（1〜2文のキーポイント）
+【デザインコンセプト＆カラー】
+- **スタイル**: AppleやNote、Stripeのような極めてシンプルで洗練されたモダンUI。ゴチャついたイラストや太すぎる枠線は使わない。
+- **配色**: 背景 #f8fafc (超淡いグレー)、メイン文字 #0f172a (ダークスレート)、アクセント #2563eb (ロイヤルブルー)、カード背景 #ffffff。
+- **レスポンシブ**: PCでは美しいカードレイアウト、スマホでは余白を十分にとった1カラムの読みやすいリスト。
 
-※ <!DOCTYPE html> から始まる完全なHTMLコードのみを出力してください。余計な解説テキストやバックティック(```html)は含めないでください。
+【コンテンツ構成】
+1. **Header**:
+   - サイトタイトル「PANCREATOBILIARY WEEKLY DIGEST」
+   - サブタイトル「今週の胆膵疾患研究ハイライト ({date_str})」
+2. **Top Highlights (今週の要注目 3〜4報)**:
+   - 臨床インパクトが高い重要論文を最上部に大きなカードで配置。
+   - 「なぜ重要か」を一言で添える。
+3. **Category Sections (以下の5領域に明確に分類)**:
+   - 1. 胆膵内視鏡・ERCP・EUS
+   - 2. 胆管炎・総胆管結石・良性胆道疾患
+   - 3. 急性・慢性膵炎
+   - 4. 胆道がん・膵がん・腫瘍
+   - 5. 肝移植・IgG4関連疾患・その他
+
+【各論文カードの記載フォーマット】
+- **タイトル**: わかりやすい【日本語タイトル】を16px/Boldで強調し、下に英語原題を小さく添える。
+- **メタバッジ**: 掲載誌名、PMID (https://pubmed.ncbi.nlm.nih.gov/PMID/ へのリンクバッジ)。
+- **要約本文**: 箇条書き風にコンパクトに整形（・背景/目的 ・主な結果 ・臨床的メッセージ）。ダラダラ長文にしない。
+
+※ `<!DOCTYPE html>` から始まる完全なHTMLコードのみを出力してください。解説テキストや ```html のようなマークダウンタグは一切含めないでください。
 """
     
     response = client.models.generate_content(
@@ -84,7 +88,6 @@ def generate_digest_html(papers, date_str):
         contents=prompt
     )
     
-    # 余分なマークダウン装飾がある場合に除去
     html_text = response.text.strip()
     if html_text.startswith("```html"):
         html_text = html_text[7:]
@@ -93,32 +96,12 @@ def generate_digest_html(papers, date_str):
     return html_text.strip()
 
 # ----------------------------------------------------
-# 3. HTMLファイルの保存（GitHub Pages用）
+# 3. HTMLファイルの保存
 # ----------------------------------------------------
 def save_html_for_web(html_content):
     os.makedirs("docs", exist_ok=True)
-    # 常に最新版として index.html に保存（GitHub Pagesのトップページになる）
     with open("docs/index.html", "w", encoding="utf-8") as f:
         f.write(html_content)
-
-# ----------------------------------------------------
-# 4. メール送信
-# ----------------------------------------------------
-def send_email(html_content, date_str):
-    sender_email = os.environ["SENDER_EMAIL"]
-    sender_password = os.environ["SENDER_PASSWORD"]
-    receiver_email = os.environ["RECEIVER_EMAIL"]
-
-    msg = MIMEMultipart("alternative")
-    msg["Subject"] = f"【週報】今週の胆膵疾患研究ハイライト ({date_str})"
-    msg["From"] = sender_email
-    msg["To"] = receiver_email
-
-    msg.attach(MIMEText(html_content, "html"))
-
-    with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
-        server.login(sender_email, sender_password)
-        server.sendmail(sender_email, receiver_email, msg.as_string())
 
 # ----------------------------------------------------
 # メイン実行処理
@@ -129,14 +112,11 @@ if __name__ == "__main__":
     
     papers = fetch_pubmed_papers()
     if papers:
-        print(f"{len(papers)} 件の論文が見つかりました。AIによるHTML要約を生成中...")
+        print(f"{len(papers)} 件の論文を取得しました。最高品質のWebデザインで生成中...")
         html_content = generate_digest_html(papers, today_str)
         
-        print("Web公開用HTML (docs/index.html) を更新中...")
+        print("Webページ (docs/index.html) を書き換え中...")
         save_html_for_web(html_content)
-        
-        print("メールを送信中...")
-        send_email(html_content, today_str)
-        print("すべての処理が完了しました！")
+        print("最新デザインでの更新が完了しました！")
     else:
-        print("該当する新しい論文が見つかりませんでした。")
+        print("新しい論文が見つかりませんでした。")
