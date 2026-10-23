@@ -1,11 +1,12 @@
 import os
+import time
 import datetime
 import requests
 import xml.etree.ElementTree as ET
 from google import genai
 
 # ----------------------------------------------------
-# 1. PubMedから論文データ取得 (胆管炎・結石のキーワードを含める)
+# 1. PubMedから論文データ取得
 # ----------------------------------------------------
 def fetch_pubmed_papers():
     base_url = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils"
@@ -42,7 +43,7 @@ def fetch_pubmed_papers():
     return papers
 
 # ----------------------------------------------------
-# 2. Gemini APIでスタイリッシュなHTMLを作成
+# 2. Gemini APIでHTML生成（リトライ＆自動フォールバック付き）
 # ----------------------------------------------------
 def generate_digest_html(papers, date_str):
     client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
@@ -81,18 +82,30 @@ def generate_digest_html(papers, date_str):
 
 ※ `<!DOCTYPE html>` から始まる完全なHTMLコードのみを出力してください。解説テキストや ```html のようなマークダウンタグは一切含めないでください。
 """
+
+    # 混雑時に順番に試すAIモデルのリスト
+    candidate_models = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash']
     
-    response = client.models.generate_content(
-        model='gemini-3.8-flash',
-        contents=prompt
-    )
-    
-    html_text = response.text.strip()
-    if html_text.startswith("```html"):
-        html_text = html_text[7:]
-    if html_text.endswith("```"):
-        html_text = html_text[:-3]
-    return html_text.strip()
+    for model_name in candidate_models:
+        for attempt in range(3): # 各モデルで最大3回リトライ
+            try:
+                print(f"モデル [{model_name}] で生成を試みています... (試行 {attempt + 1}/3)")
+                response = client.models.generate_content(
+                    model=model_name,
+                    contents=prompt
+                )
+                html_text = response.text.strip()
+                if html_text.startswith("```html"):
+                    html_text = html_text[7:]
+                if html_text.endswith("```"):
+                    html_text = html_text[:-3]
+                return html_text.strip()
+            except Exception as e:
+                print(f"一時的な通信エラーが発生しました: {e}")
+                time.sleep(10) # 10秒待機して再試行
+        print(f"モデル [{model_name}] が応答しないため、次のモデルに切り替えます。")
+
+    raise RuntimeError("すべてのAIモデル呼び出しが混雑により失敗しました。時間をおいて再試行してください。")
 
 # ----------------------------------------------------
 # 3. HTMLファイルの保存
@@ -111,7 +124,7 @@ if __name__ == "__main__":
     
     papers = fetch_pubmed_papers()
     if papers:
-        print(f"{len(papers)} 件の論文を取得しました。最高品質のWebデザインで生成中...")
+        print(f"{len(papers)} 件の論文を取得しました。WebデザインHTMLを作成中...")
         html_content = generate_digest_html(papers, today_str)
         
         print("Webページ (docs/index.html) を書き換え中...")
