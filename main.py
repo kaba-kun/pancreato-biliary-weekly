@@ -6,14 +6,15 @@ import xml.etree.ElementTree as ET
 from google import genai
 
 # ----------------------------------------------------
-# 1. PubMedから論文データ取得
+# 1. PubMedから詳細な論文データを取得 (新5領域のキーワードを追加)
 # ----------------------------------------------------
 def fetch_pubmed_papers():
     base_url = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils"
-    query = '("pancreatitis"[Title/Abstract] OR "pancreatic"[Title/Abstract] OR "biliary"[Title/Abstract] OR "ERCP"[Title/Abstract] OR "EUS"[Title/Abstract] OR "cholangiocarcinoma"[Title/Abstract] OR "cholangitis"[Title/Abstract] OR "choledocholithiasis"[Title/Abstract] OR "gallstone"[Title/Abstract]) AND ("last 7 days"[PDat])'
+    # IPMN, AIP, PSC, IgG4, PNET, 移植キーワードを拡充
+    query = '("pancreatitis"[Title/Abstract] OR "pancreatic"[Title/Abstract] OR "biliary"[Title/Abstract] OR "ERCP"[Title/Abstract] OR "EUS"[Title/Abstract] OR "cholangiocarcinoma"[Title/Abstract] OR "cholangitis"[Title/Abstract] OR "choledocholithiasis"[Title/Abstract] OR "gallstone"[Title/Abstract] OR "IPMN"[Title/Abstract] OR "PSC"[Title/Abstract] OR "IgG4"[Title/Abstract] OR "neuroendocrine"[Title/Abstract] OR "pancreas transplantation"[Title/Abstract] OR "liver transplantation"[Title/Abstract]) AND ("last 7 days"[PDat])'
     
     search_res = requests.get(f"{base_url}/esearch.fcgi", params={
-        "db": "pubmed", "term": query, "retmode": "json", "retmax": 25
+        "db": "pubmed", "term": query, "retmode": "json", "retmax": 35
     }).json()
     
     id_list = search_res.get("esearchresult", {}).get("idlist", [])
@@ -31,6 +32,28 @@ def fetch_pubmed_papers():
         title = article.find(".//ArticleTitle").text if article.find(".//ArticleTitle") is not None else ""
         journal = article.find(".//Journal/Title").text if article.find(".//Journal/Title") is not None else ""
         
+        # 筆頭著者
+        author_list = article.findall(".//AuthorList/Author")
+        authors_formatted = "Unknown"
+        if author_list:
+            first_author = author_list[0]
+            last_name = first_author.findtext("LastName") or ""
+            initials = first_author.findtext("Initials") or ""
+            name_str = f"{last_name} {initials}".strip()
+            authors_formatted = f"{name_str} et al." if len(author_list) > 1 else name_str
+
+        # 出版日
+        pub_date_elem = article.find(".//Journal/JournalIssue/PubDate")
+        pub_date_str = ""
+        if pub_date_elem is not None:
+            year = pub_date_elem.findtext("Year") or ""
+            month = pub_date_elem.findtext("Month") or ""
+            day = pub_date_elem.findtext("Day") or ""
+            if year:
+                pub_date_str = f"{year}-{month}-{day}".strip("-")
+            else:
+                pub_date_str = pub_date_elem.findtext("MedlineDate") or ""
+
         abstract_texts = article.findall(".//AbstractText")
         abstract = " ".join([elem.text for elem in abstract_texts if elem.text])
         
@@ -38,49 +61,55 @@ def fetch_pubmed_papers():
             "pmid": pmid,
             "title": title,
             "journal": journal,
+            "author": authors_formatted,
+            "pub_date": pub_date_str,
             "abstract": abstract
         })
     return papers
 
 # ----------------------------------------------------
-# 2. Gemini APIでHTML生成 (最新モデル gemini-3.8-flash 指定)
+# 2. Gemini APIで極上のミニマルHTMLを生成
 # ----------------------------------------------------
 def generate_digest_html(papers, date_str):
     client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
 
     prompt = f"""
-あなたは胆膵領域のトップ臨床医・研究者です。
-以下の{len(papers)}件の最新論文データから、世界水準のモダンで美しいWebダッシュボード風HTML（1ページ完結）を作成してください。
+あなたは胆膵領域の世界的トップ研究者兼、センスの突出したWebデザイナーです。
+以下の{len(papers)}件の最新論文から、臨床的インパクトが高い重要な論文（原則推定IF 3.0以上相当）を厳選し、超シンプルで洗練されたモダンUI（1ページ完結ダッシュボード）を作成してください。
 
 対象日付: {date_str}
 論文データ:
 {papers}
 
-【デザインコンセプト＆カラー】
-- **スタイル**: AppleやNote、Stripeのような極めてシンプルで洗練されたモダンUI。ゴチャついたイラストや太すぎる枠線は使わない。
-- **配色**: 背景 #f8fafc (超淡いグレー)、メイン文字 #0f172a (ダークスレート)、アクセント #2563eb (ロイヤルブルー)、カード背景 #ffffff。
-- **レスポンシブ**: PCでは美しいカードレイアウト、スマホでは余白を十分にとった1カラムの読みやすいリスト。
+【Webデザイン・スタイルの絶対要件】
+- **Favicon**: `<head>` にスマートな医療SVG Faviconを埋め込む：
+  `<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔬</text></svg>">`
+- **UIコンセプト**: AppleやVercelのように極めてシンプル、モダン、洗練されたインターフェース。不要な枠線や濃いグラデーション、ゴチャついた要素は一切禁止。
+- **配色**: 
+  - 背景: #f9fafb (極小の温かみがあるライトグレー)
+  - テキスト: #09090b (深いオプシディアン)
+  - サブテキスト: #71717a (スレート)
+  - カード背景: #ffffff (純白)
+  - アクセント: #4f46e5 (インディゴブルー)
+- **フォント＆カード**: `-apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", sans-serif` を使用。カードは `border-radius: 12px; border: 1px solid #e4e4e7;`。
 
-【コンテンツ構成】
-1. **Header**:
-   - サイトタイトル「PANCREATOBILIARY WEEKLY DIGEST」
-   - サブタイトル「今週の胆膵疾患研究ハイライト ({date_str})」
-2. **Top Highlights (今週の要注目 3〜4報)**:
-   - 臨床インパクトが高い重要論文を最上部に大きなカードで配置。
-   - 「なぜ重要か」を一言で添える。
-3. **Category Sections (以下の5領域に明確に分類)**:
-   - 1. 胆膵内視鏡・ERCP・EUS
-   - 2. 胆管炎・総胆管結石・良性胆道疾患
-   - 3. 急性・慢性膵炎
-   - 4. 胆道がん・膵がん・腫瘍
-   - 5. 肝移植・IgG4関連疾患・その他
+【カテゴリ分類 (必ず以下の5領域のみに分類)】
+1. **胆膵内視鏡**
+2. **膵良性疾患** (急性膵炎/慢性膵炎/自己免疫性膵炎/IPMN等嚢胞性腫瘤など)
+3. **胆道良性疾患** (胆管炎/PSC/総胆管結石/IgG4-SCなど)
+4. **膵・胆道悪性腫瘍** (膵癌/胆管がん/PNETなど)
+5. **肝胆膵移植外科**
 
-【各論文カードの記載フォーマット】
-- **タイトル**: わかりやすい【日本語タイトル】を16px/Boldで強調し、下に英語原題を小さく添える。
-- **メタバッジ**: 掲載誌名、PMID (https://pubmed.ncbi.nlm.nih.gov/PMID/ へのリンクバッジ)。
-- **要約本文**: 箇条書き風にコンパクトに整形（・背景/目的 ・主な結果 ・臨床的メッセージ）。ダラダラ長文にしない。
+【各論文カードの記載ルール】
+1. **タイトル**: わかりやすく簡潔な【日本語タイトル】（フォントサイズ16px/Bold）を提示し、その下に英語原題を小さく添える。
+2. **メタ情報ピルバッジ (1行にスッキリ横並び表示)**:
+   - 著者名 (例: Smith J et al.)
+   - 出版日 (例: 2026-10-15)
+   - 掲載誌 ＋ 推定IF (例: Endoscopy [IF ~11.5])
+   - PMIDリンク (https://pubmed.ncbi.nlm.nih.gov/PMID/ へ飛ぶバッジ)
+3. **要約**: **【必ず日本語1文（一文のみ）】**で、この研究が結論づけた臨床的要点をズバッと記述する。長文や箇条書きは不可。
 
-※ `<!DOCTYPE html>` から始まる完全なHTMLコードのみを出力してください。解説テキストや ```html のようなマークダウンタグは一切含めないでください。
+※ `<!DOCTYPE html>` から始まる完全なHTMLコードのみを出力してください。解説文や ```html マークダウンは絶対に含めないでください。
 """
 
     model_name = 'gemini-3.8-flash'
@@ -120,7 +149,7 @@ if __name__ == "__main__":
     
     papers = fetch_pubmed_papers()
     if papers:
-        print(f"{len(papers)} 件の論文を取得しました。WebデザインHTMLを作成中...")
+        print(f"{len(papers)} 件の論文を取得しました。極上ミニマルWebデザインで生成中...")
         html_content = generate_digest_html(papers, today_str)
         
         print("Webページ (docs/index.html) を書き換え中...")
