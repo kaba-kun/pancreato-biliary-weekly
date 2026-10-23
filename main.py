@@ -43,7 +43,7 @@ def fetch_pubmed_papers():
     return papers
 
 # ----------------------------------------------------
-# 2. Gemini APIでHTML生成（リトライ＆自動フォールバック付き）
+# 2. Gemini APIでHTML生成 (最新モデル gemini-3.8-flash 指定)
 # ----------------------------------------------------
 def generate_digest_html(papers, date_str):
     client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
@@ -83,29 +83,25 @@ def generate_digest_html(papers, date_str):
 ※ `<!DOCTYPE html>` から始まる完全なHTMLコードのみを出力してください。解説テキストや ```html のようなマークダウンタグは一切含めないでください。
 """
 
-    # 混雑時に順番に試すAIモデルのリスト
-    candidate_models = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash']
-    
-    for model_name in candidate_models:
-        for attempt in range(3): # 各モデルで最大3回リトライ
-            try:
-                print(f"モデル [{model_name}] で生成を試みています... (試行 {attempt + 1}/3)")
-                response = client.models.generate_content(
-                    model=model_name,
-                    contents=prompt
-                )
-                html_text = response.text.strip()
-                if html_text.startswith("```html"):
-                    html_text = html_text[7:]
-                if html_text.endswith("```"):
-                    html_text = html_text[:-3]
-                return html_text.strip()
-            except Exception as e:
-                print(f"一時的な通信エラーが発生しました: {e}")
-                time.sleep(10) # 10秒待機して再試行
-        print(f"モデル [{model_name}] が応答しないため、次のモデルに切り替えます。")
+    model_name = 'gemini-3.8-flash'
+    for attempt in range(3):
+        try:
+            print(f"モデル [{model_name}] で生成を実行中... (試行 {attempt + 1}/3)")
+            response = client.models.generate_content(
+                model=model_name,
+                contents=prompt
+            )
+            html_text = response.text.strip()
+            if html_text.startswith("```html"):
+                html_text = html_text[7:]
+            if html_text.endswith("```"):
+                html_text = html_text[:-3]
+            return html_text.strip()
+        except Exception as e:
+            print(f"通信エラーが発生しました: {e}")
+            time.sleep(5)
 
-    raise RuntimeError("すべてのAIモデル呼び出しが混雑により失敗しました。時間をおいて再試行してください。")
+    raise RuntimeError("AIモデルの呼び出しに失敗しました。")
 
 # ----------------------------------------------------
 # 3. HTMLファイルの保存
