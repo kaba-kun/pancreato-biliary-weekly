@@ -5,11 +5,10 @@ import xml.etree.ElementTree as ET
 from google import genai
 
 # ----------------------------------------------------
-# 1. PubMedから論文データ取得 (胆管炎・結石のキーワードを追加)
+# 1. PubMedから論文データ取得 (胆管炎・結石のキーワードを含める)
 # ----------------------------------------------------
 def fetch_pubmed_papers():
     base_url = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils"
-    # 胆管炎 (cholangitis)、総胆管結石 (choledocholithiasis / gallstone) を追加
     query = '("pancreatitis"[Title/Abstract] OR "pancreatic"[Title/Abstract] OR "biliary"[Title/Abstract] OR "ERCP"[Title/Abstract] OR "EUS"[Title/Abstract] OR "cholangiocarcinoma"[Title/Abstract] OR "cholangitis"[Title/Abstract] OR "choledocholithiasis"[Title/Abstract] OR "gallstone"[Title/Abstract]) AND ("last 7 days"[PDat])'
     
     search_res = requests.get(f"{base_url}/esearch.fcgi", params={
@@ -84,7 +83,7 @@ def generate_digest_html(papers, date_str):
 """
     
     response = client.models.generate_content(
-        model='gemini-2.5-flash',
+        model='gemini-3.8-flash',
         contents=prompt
     )
     
