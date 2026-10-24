@@ -110,7 +110,7 @@ def fetch_pubmed_papers():
     return papers
 
 # ----------------------------------------------------
-# 2. Gemini APIで構造化JSONデータを生成
+# 2. Gemini APIで構造化JSONデータを生成 (Flashモデル単体 & 段階的リトライ)
 # ----------------------------------------------------
 def analyze_papers_with_gemini(papers):
     client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
@@ -151,8 +151,11 @@ def analyze_papers_with_gemini(papers):
 """
 
     model_name = 'gemini-3.8-flash'
-    for attempt in range(3):
+    
+    # 最大5回までリトライ (待機時間を 10s, 20s, 30s, 40s と伸ばして混雑を回避)
+    for attempt in range(5):
         try:
+            print(f"モデル [{model_name}] で解析を実行中... (試行 {attempt + 1}/5)")
             response = client.models.generate_content(
                 model=model_name,
                 contents=prompt
@@ -166,10 +169,11 @@ def analyze_papers_with_gemini(papers):
                 raw_text = raw_text[:-3]
             return json.loads(raw_text.strip())
         except Exception as e:
-            print(f"API呼び出し/解析エラー: {e}")
-            time.sleep(5)
+            wait_time = (attempt + 1) * 10
+            print(f"一時的な混雑または通信エラーが発生しました ({e})。{wait_time}秒後に再試行します...")
+            time.sleep(wait_time)
 
-    raise RuntimeError("AIによる解析に失敗しました。")
+    raise RuntimeError("AIモデルが一時的な混雑により応答しませんでした。時間をおいて再試行してください。")
 
 # ----------------------------------------------------
 # 3. 完全固定のApple風HTMLテンプレートをレンダリングする
@@ -183,7 +187,6 @@ def build_fixed_html(analyzed_papers, original_papers, date_str, archive_list):
     for p in analyzed_papers:
         raw_pmid_str = str(p.get("pmid", ""))
         
-        # 正規表現で7〜9桁の純粋なPMID数字だけを確実に抽出
         match = re.search(r'\b\d{7,9}\b', raw_pmid_str)
         if match:
             clean_pmid = match.group(0)
