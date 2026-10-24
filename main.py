@@ -125,7 +125,8 @@ def generate_digest_html(papers, date_str, archive_list):
         archive_options += f'<option value="{arch["filename"]}">{arch["date"]}</option>'
 
     prompt = f"""
-あなたは世界最高峰の胆膵外科・内視鏡の臨床研究者であり、AppleやVercelのようなプロダクトデザインを手がけるUIデザイナーです。
+あなたは世界最高峰の胆膵内科ならびに胆膵内視鏡の臨床医かつ臨床研究者です。胆石や胆嚢炎から膵炎，膵癌などあらゆる胆膵内科領域のスペシャリストです。
+またAppleやVercelのようなプロダクトデザインを手がけるUIデザイナーです。
 以下の{len(papers)}件の最新臨床研究論文（オリジナルアーティクル）から、読者を惹きつける洗練されたウィークリーダッシュボードHTMLを作成してください。
 
 対象期間: {date_str}
@@ -133,6 +134,8 @@ def generate_digest_html(papers, date_str, archive_list):
 {papers}
 
 【デザイン・UIコンセプト（Apple Inspired Minimal UI）】
+- **サイトタイトル**: 「今週の胆膵疾患研究ハイライト」（※ここにお好きなタイトルを指定します）
+- **サブタイトル**: 「Pancreatobiliary Weekly Digest ({date_str})」
 - **フォント**: System UI (-apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", sans-serif)
 - **カラー**: 
   - 背景: #f5f5f7 (Apple製品ページ調の繊細なグレー)
@@ -147,7 +150,7 @@ def generate_digest_html(papers, date_str, archive_list):
     * 1. 胆膵内視鏡 (`data-category="endo"`)
     * 2. 膵良性疾患 (`data-category="pancreas-benign"`)
     * 3. 胆道良性疾患 (`data-category="biliary-benign"`)
-    * 4. 膵・胆道悪性腫瘍 (`data-category="cancer"`)
+    * 4. 膵・胆道悪性疾患 (`data-category="cancer"`)
     * 5. 肝胆膵移植外科 (`data-category="transplant"`)
 
 【トップハイライト選定基準】
