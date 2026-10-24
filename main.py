@@ -32,6 +32,15 @@ TARGET_JOURNALS = [
     "Journal of Hepato-Biliary-Pancreatic Sciences", "Pancreas"
 ]
 
+# カテゴリーのソート順定義
+CATEGORY_ORDER = {
+    "endo": 1,
+    "pancreas-benign": 2,
+    "biliary-benign": 3,
+    "cancer": 4,
+    "case-report": 5
+}
+
 # ----------------------------------------------------
 # 1. PubMedから「指定7日間」の論文を取得 (POST方式)
 # ----------------------------------------------------
@@ -39,13 +48,11 @@ def fetch_pubmed_papers():
     base_url = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils"
     headers = {"User-Agent": "PancreatobiliaryDigest/1.0"}
     
-    # 略語＋正式名称＋全主要疾患・処置を完全網羅した検索クエリ (移植除外)
     term_keywords = '("pancreatitis"[Title/Abstract] OR "pancreatic cancer"[Title/Abstract] OR "pancreatic ductal adenocarcinoma"[Title/Abstract] OR "PDAC"[Title/Abstract] OR "pancreatic carcinoma"[Title/Abstract] OR "pancreatic neuroendocrine tumor"[Title/Abstract] OR "PanNET"[Title/Abstract] OR "IPMN"[Title/Abstract] OR "intraductal papillary mucinous neoplasm"[Title/Abstract] OR "MCN"[Title/Abstract] OR "mucinous cystic neoplasm"[Title/Abstract] OR "SCN"[Title/Abstract] OR "serous cystic neoplasm"[Title/Abstract] OR "serous cystadenoma"[Title/Abstract] OR "pancreatic cyst"[Title/Abstract] OR "pancreatic cystic"[Title/Abstract] OR "autoimmune pancreatitis"[Title/Abstract] OR "AIP"[Title/Abstract] OR "pancreatic fistula"[Title/Abstract] OR "POPF"[Title/Abstract] OR "postoperative pancreatic fistula"[Title/Abstract] OR "pancreatic duct stricture"[Title/Abstract] OR "biliary"[Title/Abstract] OR "cholangiocarcinoma"[Title/Abstract] OR "biliary tract cancer"[Title/Abstract] OR "gallbladder cancer"[Title/Abstract] OR "gallbladder carcinoma"[Title/Abstract] OR "gallbladder disease"[Title/Abstract] OR "cholangitis"[Title/Abstract] OR "cholecystitis"[Title/Abstract] OR "choledocholithiasis"[Title/Abstract] OR "common bile duct stones"[Title/Abstract] OR "gallstone"[Title/Abstract] OR "PSC"[Title/Abstract] OR "primary sclerosing cholangitis"[Title/Abstract] OR "IgG4-related sclerosing cholangitis"[Title/Abstract] OR "choledochal cyst"[Title/Abstract] OR "biliary stricture"[Title/Abstract] OR "ampullary carcinoma"[Title/Abstract] OR "ampullary cancer"[Title/Abstract] OR "cancer of the ampulla of vater"[Title/Abstract] OR "ampullary adenoma"[Title/Abstract] OR "papillary carcinoma"[Title/Abstract] OR "papillary adenoma"[Title/Abstract] OR "papillary tumor"[Title/Abstract] OR "papilla of vater"[Title/Abstract] OR "papillectomy"[Title/Abstract] OR "endoscopic papillectomy"[Title/Abstract] OR "ERCP"[Title/Abstract] OR "endoscopic retrograde cholangiopancreatography"[Title/Abstract] OR "EUS"[Title/Abstract] OR "endoscopic ultrasound"[Title/Abstract] OR "endoscopic ultrasonography"[Title/Abstract] OR "FNA"[Title/Abstract] OR "fine needle aspiration"[Title/Abstract] OR "fine-needle aspiration"[Title/Abstract] OR "FNB"[Title/Abstract] OR "fine needle biopsy"[Title/Abstract] OR "fine-needle biopsy"[Title/Abstract] OR "EUS-TA"[Title/Abstract] OR "tissue acquisition"[Title/Abstract] OR "EUS-guided"[Title/Abstract] OR "sphincterotomy"[Title/Abstract] OR "EST"[Title/Abstract] OR "endoscopic sphincterotomy"[Title/Abstract] OR "EPBD"[Title/Abstract] OR "endoscopic papillary balloon dilation"[Title/Abstract] OR "EPLBD"[Title/Abstract] OR "endoscopic papillary large balloon dilation"[Title/Abstract] OR "cholangioscopy"[Title/Abstract] OR "pancreatoscopy"[Title/Abstract] OR "biliary stent"[Title/Abstract] OR "biliary stenting"[Title/Abstract] OR "pancreatic stent"[Title/Abstract] OR "pancreatic stenting"[Title/Abstract] OR "biliary drainage"[Title/Abstract] OR "pancreatic drainage"[Title/Abstract])'
     
     date_filter = 'AND ("last 7 days"[PDat])'
     query = f"{term_keywords} {date_filter}"
     
-    # 長大クエリ対応のため HTTP POST リクエストを使用
     search_res = requests.post(f"{base_url}/esearch.fcgi", data={
         "db": "pubmed", "term": query, "retmode": "json", "retmax": 80
     }, headers=headers)
@@ -99,12 +106,10 @@ def fetch_pubmed_papers():
         abstract_texts = article.findall(".//AbstractText")
         abstract = " ".join([elem.text for elem in abstract_texts if elem.text]).strip()
         
-        # 判定：アブストラクト（要約）の存在チェック（"No abstract available" や空のアブストラクトを除外）
         lower_abstract = abstract.lower()
         if not abstract or "no abstract available" in lower_abstract or len(abstract) < 50:
             continue
 
-        # 判定：基礎研究（マウス・ラット・in vitro）の除外
         if "mouse model" in lower_abstract or "mice" in lower_abstract or "rat model" in lower_abstract or "in vitro" in lower_abstract:
             continue
 
@@ -145,11 +150,11 @@ def analyze_papers_with_gemini(papers):
     "id": 論文データにある数値ID (0, 1, 2...),
     "title_ja": "魅力的で正確な日本語タイトル",
     "title_en": "英語原題",
-    "category": "カテゴリID (endo, pancreas-benign, biliary-benign, cancer のいずれか)",
+    "category": "カテゴリID (endo, pancreas-benign, biliary-benign, cancer, case-report のいずれか)",
     "is_highlight": trueまたはfalse (最重要3~4報のみtrue),
-    "study_design": "研究デザイン・対象症例数 (例: 多施設RCT / 320例)",
-    "results": "主要結果 (主要エンドポイントや数値)",
-    "takeaway": "臨床的要点 (日常診療への影響)"
+    "study_design": "研究デザイン・対象症例数 (例: 多施設RCT / 320例 / 症例報告)",
+    "results": "主要結果 (主要エンドポイントや数値、症例概要)",
+    "takeaway": "臨床的要点 (日常診療への影響・教訓)"
   }}
 ]
 
@@ -158,6 +163,7 @@ def analyze_papers_with_gemini(papers):
 - pancreas-benign: 膵良性疾患 (急性・慢性・自己免疫性膵炎、IPMN, MCN, SCN等嚢胞性腫瘤、膵液瘻等)
 - biliary-benign: 胆道良性疾患 (胆管炎、胆嚢炎、PSC、総胆管結石、IgG4-SC、胆道狭窄等)
 - cancer: 膵・胆道悪性疾患 (膵癌, PDAC, PanNET, 胆管がん、胆嚢癌、十二指腸乳頭部癌/腺腫等)
+- case-report: 症例報告 (臨床的に教訓的・希少・貴重な症例報告、Case Report、Case Series等)
 
 ※ 余計な解説テキストやマークダウンは入れず、純粋なJSONテキストのみを出力してください。
 """
@@ -178,7 +184,12 @@ def analyze_papers_with_gemini(papers):
                 raw_text = raw_text[3:]
             if raw_text.endswith("```"):
                 raw_text = raw_text[:-3]
-            return json.loads(raw_text.strip())
+            
+            analyzed = json.loads(raw_text.strip())
+            # カテゴリー順にソート（1: endo -> 2: pancreas-benign -> 3: biliary-benign -> 4: cancer -> 5: case-report）
+            analyzed.sort(key=lambda x: CATEGORY_ORDER.get(x.get("category", ""), 99))
+            return analyzed
+            
         except Exception as e:
             wait_time = (attempt + 1) * 10
             print(f"一時的な通信エラー ({e})。{wait_time}秒後に再試行します...")
@@ -190,6 +201,8 @@ def analyze_papers_with_gemini(papers):
 # 3. 完全固定のApple風HTMLテンプレートをレンダリングする
 # ----------------------------------------------------
 def build_fixed_html(analyzed_papers, original_papers, date_str, archive_list, is_root=True):
+    top_link = "index.html" if is_root else "../index.html"
+    
     archive_options = []
     if is_root:
         archive_options.append('<option value="index.html" selected>最新号 (最新)</option>')
@@ -293,7 +306,14 @@ def build_fixed_html(analyzed_papers, original_papers, date_str, archive_list, i
             justify-content: space-between;
             align-items: center;
         }}
-        .site-title {{ font-size: 20px; font-weight: 700; letter-spacing: -0.02em; color: var(--text-main); }}
+        .site-title-link {{
+            text-decoration: none;
+            color: inherit;
+        }}
+        .site-title-link:hover .site-title {{
+            color: var(--accent);
+        }}
+        .site-title {{ font-size: 20px; font-weight: 700; letter-spacing: -0.02em; color: var(--text-main); transition: color 0.2s ease; }}
         .sub-title {{ font-size: 13px; color: var(--text-sub); margin-top: 2px; }}
         .archive-select {{
             padding: 8px 12px;
@@ -390,7 +410,9 @@ def build_fixed_html(analyzed_papers, original_papers, date_str, archive_list, i
     <header>
         <div class="header-container">
             <div>
-                <div class="site-title">今週の胆膵疾患研究ハイライト</div>
+                <a href="{top_link}" class="site-title-link">
+                    <div class="site-title">今週の胆膵疾患研究ハイライト</div>
+                </a>
                 <div class="sub-title">Pancreatobiliary Weekly Digest ({date_str})</div>
             </div>
             <select onchange="location.href=this.value" class="archive-select">
@@ -404,6 +426,7 @@ def build_fixed_html(analyzed_papers, original_papers, date_str, archive_list, i
             <button class="tab-btn" onclick="filterCategory('pancreas-benign', this)">2. 膵良性疾患</button>
             <button class="tab-btn" onclick="filterCategory('biliary-benign', this)">3. 胆道良性疾患</button>
             <button class="tab-btn" onclick="filterCategory('cancer', this)">4. 膵・胆道悪性疾患</button>
+            <button class="tab-btn" onclick="filterCategory('case-report', this)">5. 症例報告</button>
         </nav>
     </header>
 
