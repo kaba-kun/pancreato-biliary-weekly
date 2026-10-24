@@ -126,7 +126,7 @@ def analyze_papers_with_gemini(papers):
 以下のキーを持つJSON配列 (Array) の形式で出力してください：
 [
   {{
-    "pmid": "PMIDの純粋な数字のみ (例: 42913703。URLや記号は絶対に入れないこと)",
+    "pmid": "PubMedのPMID番号 (数字のみ)",
     "title_ja": "魅力的で正確な日本語タイトル",
     "title_en": "英語原題",
     "journal": "雑誌名",
@@ -174,15 +174,23 @@ def analyze_papers_with_gemini(papers):
 # ----------------------------------------------------
 # 3. 完全固定のApple風HTMLテンプレートをレンダリングする
 # ----------------------------------------------------
-def build_fixed_html(analyzed_papers, date_str, archive_list):
+def build_fixed_html(analyzed_papers, original_papers, date_str, archive_list):
     archive_options = '<option value="../index.html">最新号 (最新)</option>'
     for arch in archive_list:
         archive_options += f'<option value="{arch["filename"]}">{arch["date"]}</option>'
 
     cards_html = ""
     for p in analyzed_papers:
-        raw_pmid = str(p.get("pmid", ""))
-        clean_pmid = re.sub(r'\D', '', raw_pmid)
+        raw_pmid_str = str(p.get("pmid", ""))
+        
+        # 正規表現で7〜9桁の純粋なPMID数字だけを確実に抽出
+        match = re.search(r'\b\d{7,9}\b', raw_pmid_str)
+        if match:
+            clean_pmid = match.group(0)
+        else:
+            digits = re.sub(r'\D', '', raw_pmid_str)
+            clean_pmid = digits[:8] if len(digits) >= 8 else digits
+
         pubmed_url = f"[https://pubmed.ncbi.nlm.nih.gov/](https://pubmed.ncbi.nlm.nih.gov/){clean_pmid}/" if clean_pmid else "#"
         
         highlight_badge = '<span class="badge highlight-badge">⭐ TOP HIGHLIGHT</span>' if p.get("is_highlight") else ''
@@ -223,7 +231,7 @@ def build_fixed_html(analyzed_papers, date_str, archive_list):
     <meta property="og:title" content="今週の胆膵疾患研究ハイライト">
     <meta property="og:description" content="主要54誌から厳選した胆膵領域の最新臨床研究・一文要約サマリー。">
     <meta property="og:type" content="website">
-    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='[http://www.w3.org/2000/svg](http://www.w3.org/2000/svg)' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🔬%3C/text%3E%3C/svg%3E">
+    <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='[http://www.w3.org/2000/svg'%20viewBox='0%200%20100%20100'%3E%3Ctext%20y='.9em'%20font-size='90'%3E%F0%9F%94%AC%3C/text%3E%3C/svg%3E](http://www.w3.org/2000/svg'%20viewBox='0%200%20100%20100'%3E%3Ctext%20y='.9em'%20font-size='90'%3E%F0%9F%94%AC%3C/text%3E%3C/svg%3E)">
     <style>
         :root {{
             --bg-color: #f5f5f7;
@@ -243,7 +251,6 @@ def build_fixed_html(analyzed_papers, date_str, archive_list):
             padding-bottom: 40px;
         }}
         
-        /* 固定ヘッダー（タイトル＋タブバー一体型） */
         header {{
             background: rgba(255, 255, 255, 0.85);
             backdrop-filter: blur(20px);
@@ -274,7 +281,6 @@ def build_fixed_html(analyzed_papers, date_str, archive_list):
             color: var(--text-main);
         }}
         
-        /* 固定ナビゲーションタブ */
         nav.tabs-nav {{
             max-width: 1000px;
             margin: 12px auto 0;
@@ -444,7 +450,7 @@ if __name__ == "__main__":
         analyzed_papers = analyze_papers_with_gemini(papers)
         
         print("固定テンプレートでHTMLを生成中...")
-        html_content = build_fixed_html(analyzed_papers, date_display_str, existing_archives)
+        html_content = build_fixed_html(analyzed_papers, papers, date_display_str, existing_archives)
         
         print("最新ページ (docs/index.html) およびアーカイブを更新中...")
         save_and_manage_archives(html_content, date_file_str)
