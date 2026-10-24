@@ -3,6 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- 検索エンジン用の説明文 -->
+    <meta name="description" content="直近1週間に公表された胆膵疾患・胆膵内視鏡領域の主要臨床論文（Original Article）の要約ダッシュボード。">
+    <!-- SNS（X/Facebook等）でシェアされた時の表示設定 (OGP) -->
+    <meta property="og:title" content="今週の胆膵疾患研究ハイライト | Pancreatobiliary Weekly Digest">
+    <meta property="og:description" content="主要54誌から厳選した胆膵領域の最新臨床研究・一文要約サマリー。">
+    <meta property="og:type" content="website">
     <title>今週の胆膵疾患研究ハイライト</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22[http://www.w3.org/2000/svg%22](http://www.w3.org/2000/svg%22) viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔬</text></svg>">
     <style>
@@ -21,10 +27,10 @@
             color: var(--text-main);
             line-height: 1.5;
             -webkit-font-smoothing: antialiased;
-            padding-bottom: 80px;
+            padding-bottom: 40px;
         }
         header {
-            background: rgba(255, 255, 255, 0.8);
+            background: rgba(255, 255, 255, 0.85);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
             position: sticky;
@@ -40,7 +46,7 @@
             justify-content: space-between;
             align-items: center;
         }
-        .site-title { font-size: 20px; font-weight: 700; letter-spacing: -0.02em; }
+        .site-title { font-size: 20px; font-weight: 700; letter-spacing: -0.02em; color: var(--text-main); }
         .sub-title { font-size: 13px; color: var(--text-sub); margin-top: 2px; }
         .archive-select {
             padding: 8px 12px;
@@ -49,6 +55,7 @@
             background: #fff;
             font-size: 13px;
             cursor: pointer;
+            color: var(--text-main);
         }
         nav.tabs-nav {
             max-width: 1000px;
@@ -68,32 +75,53 @@
             font-size: 14px;
             font-weight: 500;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: background 0.2s ease, color 0.2s ease;
         }
         .tab-btn.active { background: var(--accent); color: #fff; }
         main { max-width: 1000px; margin: 24px auto; padding: 0 24px; }
+        
+        /* カード全体リンクスタイル */
+        a.paper-card-link {
+            display: block;
+            text-decoration: none;
+            color: inherit;
+            margin-bottom: 20px;
+        }
         .paper-card {
             background: var(--card-bg);
             border-radius: 16px;
             padding: 24px;
-            margin-bottom: 20px;
             box-shadow: 0 4px 20px rgba(0,0,0,0.03);
             border: 1px solid var(--border-color);
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
         }
-        .paper-card:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(0,0,0,0.06); }
+        a.paper-card-link:hover .paper-card {
+            border-color: rgba(0, 102, 204, 0.4);
+            box-shadow: 0 6px 24px rgba(0,102,204,0.08);
+        }
+        
         .card-header { display: flex; gap: 8px; margin-bottom: 12px; align-items: center; }
         .badge { font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 6px; text-transform: uppercase; }
         .highlight-badge { background: #fff3dc; color: #b45309; border: 1px solid #fde68a; }
         .journal-badge { background: #f1f5f9; color: #475569; }
         .title-ja { font-size: 18px; font-weight: 700; margin-bottom: 6px; color: #0f172a; line-height: 1.35; }
         .title-en { font-size: 13px; color: var(--text-sub); margin-bottom: 14px; font-style: italic; }
-        .meta-row { display: flex; gap: 16px; font-size: 12px; color: var(--text-sub); margin-bottom: 16px; flex-wrap: wrap; }
-        .pmid-link { color: var(--accent); text-decoration: none; font-weight: 600; }
+        .meta-row { display: flex; gap: 16px; font-size: 12px; color: var(--text-sub); margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
+        .pmid-badge { color: var(--accent); font-weight: 600; background: #eff6ff; padding: 2px 8px; border-radius: 4px; }
         .summary-box { background: #f8fafc; border-radius: 10px; padding: 14px; font-size: 13.5px; border: 1px solid #f1f5f9; }
-        .summary-item { margin-bottom: 6px; }
+        .summary-item { margin-bottom: 6px; color: #334155; }
         .summary-item:last-child { margin-bottom: 0; }
-        .summary-item strong { color: #334155; }
+        .summary-item strong { color: #0f172a; }
+
+        footer {
+            max-width: 1000px;
+            margin: 40px auto 0;
+            padding: 24px;
+            text-align: center;
+            border-top: 1px solid var(--border-color);
+            color: var(--text-sub);
+            font-size: 12px;
+        }
     </style>
 </head>
 <body>
@@ -121,117 +149,131 @@
 
     <main id="cards-container">
         
-        <article class="paper-card endo highlight" data-category="endo highlight">
-            <div class="card-header">
-                <span class="badge highlight-badge">⭐ TOP HIGHLIGHT</span>
-                <span class="badge journal-badge">Endoscopy</span>
-            </div>
-            <h2 class="title-ja">肝疾患および門脈圧亢進症における超音波内視鏡（EUS）技術：欧州消化器内視鏡学会（ESGE）技術・テクノロジーレビュー</h2>
-            <p class="title-en">Endoscopic ultrasound in hepatology: A European Society of Gastrointestinal Endoscopy (ESGE) Technical and Technology Review.</p>
-            <div class="meta-row">
-                <span>👤 Fabbri C et al.</span>
-                <span>📅 2026-Oct-22</span>
-                <a href="[https://pubmed.ncbi.nlm.nih.gov/](https://pubmed.ncbi.nlm.nih.gov/)42913703/" target="_blank" class="pmid-link">PMID: 42913703 ↗</a>
-            </div>
-            <div class="summary-box">
-                <div class="summary-item"><strong>研究デザイン:</strong> ESGE技術レビュー・ガイドライン策定 / GRADEシステムを用いた8項目のステートメント策定</div>
-                <div class="summary-item"><strong>主要結果:</strong> EUSガイド下肝生検（EUS-LB）および門脈圧較差測定（EUS-PPGM）は選択的症例かつ専門施設における相補的アプローチとして支持された。また、胃静脈瘤に対するEUSガイド下治療は直接内視鏡下注入療法の有効な代替手技と位置づけられた。Shear wave elastographyや造影EUSも有用な補助技術とされた一方、門脈血リキッドバイオプシーは依然として研究段階と評価された。</div>
-                <div class="summary-item"><strong>臨床的要点:</strong> 胆膵内視鏡医によるEUS手技が肝実質疾患や門脈圧亢進症の診断・治療へと拡大する中、手技の標準化と適正適応に関する国際的指針が示され、エキスパート施設での臨床導入の指針となる。</div>
-            </div>
-        </article>
+        <a href="[https://pubmed.ncbi.nlm.nih.gov/](https://pubmed.ncbi.nlm.nih.gov/)42913703/" target="_blank" class="paper-card-link endo highlight">
+            <article class="paper-card">
+                <div class="card-header">
+                    <span class="badge highlight-badge">⭐ TOP HIGHLIGHT</span>
+                    <span class="badge journal-badge">Endoscopy</span>
+                </div>
+                <h2 class="title-ja">肝疾患および門脈圧亢進症に対する超音波内視鏡（EUS）手技：欧州消化器内視鏡学会（ESGE）技術・テクノロジーレビュー</h2>
+                <p class="title-en">Endoscopic ultrasound in hepatology: A European Society of Gastrointestinal Endoscopy (ESGE) Technical and Technology Review.</p>
+                <div class="meta-row">
+                    <span>👤 Fabbri C et al.</span>
+                    <span>📅 2026-Oct-22</span>
+                    <span class="pmid-badge">PMID: 42913703 ↗</span>
+                </div>
+                <div class="summary-box">
+                    <div class="summary-item"><strong>研究デザイン:</strong> 国際ガイドライン／システマティックレビュー（GRADEシステム採用）</div>
+                    <div class="summary-item"><strong>主要結果:</strong> ESGEは8つの推奨声明を作成。EUS下肝生検（EUS-LB）およびEUS下門脈圧較差測定（EUS-PPGM）は選択された症例や熟練施設での相補的アプローチとして支持された。胃静脈瘤に対するEUS下治療（コイル留置＋シアノアクリレート塞栓）は直接内視鏡下注入療法の有効な代替法と位置づけられた。また、EUS-剪断波エラストグラフィや造影EUSは補助的技術として支持された一方、門脈血リキッドバイオプシーは依然として研究段階とされた。</div>
+                    <div class="summary-item"><strong>臨床的要点:</strong> 肝硬変・門脈圧亢進症や肝腫瘍に対するEUS関連手技のエビデンスと位置付けが整理された。特に胃静脈瘤に対するEUS治療やEUS-LB/PPGMは、熟練施設において標準治療を補完・代替し得る重要な手技として臨床実装が推奨される。</div>
+                </div>
+            </article>
+        </a>
         
-        <article class="paper-card pancreas-benign highlight" data-category="pancreas-benign highlight">
-            <div class="card-header">
-                <span class="badge highlight-badge">⭐ TOP HIGHLIGHT</span>
-                <span class="badge journal-badge">Journal of clinical gastroenterology</span>
-            </div>
-            <h2 class="title-ja">メタボリックシンドロームは壊死性膵炎患者の臨床転帰悪化および感染性膵壊死増加と有意に関連する</h2>
-            <p class="title-en">Metabolic Syndrome Is Associated With Worsened Clinical Outcomes in Individuals With Necrotizing Pancreatitis.</p>
-            <div class="meta-row">
-                <span>👤 AbiMansour JP et al.</span>
-                <span>📅 2026-Oct-23</span>
-                <a href="[https://pubmed.ncbi.nlm.nih.gov/](https://pubmed.ncbi.nlm.nih.gov/)42919446/" target="_blank" class="pmid-link">PMID: 42919446 ↗</a>
-            </div>
-            <div class="summary-box">
-                <div class="summary-item"><strong>研究デザイン:</strong> 三次救急医療機関における単施設後方視的コホート研究 / 壊死性膵炎276例（MetS群154例 vs 非MetS群122例）</div>
-                <div class="summary-item"><strong>主要結果:</strong> MetS合併例では非合併例と比較してICU管理を要する頻度が有意に高く（38.3% vs 17.2%, P<0.001）、入院期間も延長した（9.0日 vs 5.0日, P=0.029）。また、敗血症（27.5% vs 15.6%, P=0.019）、呼吸不全（31.2% vs 18%, P=0.013）、急性腎不全（35.7% vs 21.3%, P=0.009）、院内死亡率（17.5% vs 8.2%, P=0.024）が有意に増加した。感染性膵壊死（IPN）の発生率もMetS群で有意に高率であった（39.6% vs 23.0%, P=0.003）。</div>
-                <div class="summary-item"><strong>臨床的要点:</strong> メタボリックシンドロームの併存は壊死性膵炎における臓器不全や感染性膵壊死（IPN）の独立した危険因子であり、早期からの集学的治療や厳重なモニタリングを要する。</div>
-            </div>
-        </article>
+        <a href="[https://pubmed.ncbi.nlm.nih.gov/](https://pubmed.ncbi.nlm.nih.gov/)42919446/" target="_blank" class="paper-card-link pancreas-benign highlight">
+            <article class="paper-card">
+                <div class="card-header">
+                    <span class="badge highlight-badge">⭐ TOP HIGHLIGHT</span>
+                    <span class="badge journal-badge">Journal of clinical gastroenterology</span>
+                </div>
+                <h2 class="title-ja">メタボリックシンドロームの合併は壊死性膵炎および感染性膵壊死の転帰を著しく悪化させる</h2>
+                <p class="title-en">Metabolic Syndrome Is Associated With Worsened Clinical Outcomes in Individuals With Necrotizing Pancreatitis.</p>
+                <div class="meta-row">
+                    <span>👤 AbiMansour JP et al.</span>
+                    <span>📅 2026-Oct-23</span>
+                    <span class="pmid-badge">PMID: 42919446 ↗</span>
+                </div>
+                <div class="summary-box">
+                    <div class="summary-item"><strong>研究デザイン:</strong> 単施設後方視的コホート研究 / 276例</div>
+                    <div class="summary-item"><strong>主要結果:</strong> 壊死性膵炎患者276例中154例（55.8%）にメタボリックシンドローム（MetS）を認めた。MetS群は非MetS群と比較してICU入室率（38.3% vs 17.2%、P<0.001）、在院日数（9.0日 vs 5.0日、P=0.029）、敗血症発生率（27.5% vs 15.6%、P=0.019）、呼吸不全（31.2% vs 18%）、腎不全（35.7% vs 21.3%）、院内死亡率（17.5% vs 8.2%、P=0.024）がいずれも有意に高値であった。さらに二次エンドポイントである感染性膵壊死（IPN）の発生率もMetS群で有意に高かった（39.6% vs 23.0%、P=0.003）。</div>
+                    <div class="summary-item"><strong>臨床的要点:</strong> 壊死性膵炎においてMetSの合併は単なる併存症にとどまらず、局所合併症（IPN）や臓器不全、死亡リスクを倍増させる強力な予後不良因子である。初期診療時からの厳重な全身管理と、早期の内視鏡的ネクロセクトミー等のステップアップアプローチを見据えた警戒が必要となる。</div>
+                </div>
+            </article>
+        </a>
         
-        <article class="paper-card pancreas-benign highlight" data-category="pancreas-benign highlight">
-            <div class="card-header">
-                <span class="badge highlight-badge">⭐ TOP HIGHLIGHT</span>
-                <span class="badge journal-badge">Clinical and translational gastroenterology</span>
-            </div>
-            <h2 class="title-ja">急性および慢性膵炎における患者報告アウトカム（PROMIS）測定尺度の心理測定学的妥当性の検証：PROCEED研究</h2>
-            <p class="title-en">Psychometric Validation of PROMIS Measures in Acute and Chronic Pancreatitis.</p>
-            <div class="meta-row">
-                <span>👤 Askew RL et al.</span>
-                <span>📅 2026-Oct-22</span>
-                <a href="[https://pubmed.ncbi.nlm.nih.gov/](https://pubmed.ncbi.nlm.nih.gov/)42913624/" target="_blank" class="pmid-link">PMID: 42913624 ↗</a>
-            </div>
-            <div class="summary-box">
-                <div class="summary-item"><strong>研究デザイン:</strong> 多施設前向き縦断コホート研究（PROCEED研究） / 膵炎患者および対照群 1,927例</div>
-                <div class="summary-item"><strong>主要結果:</strong> PROMIS-29、PROMIS-Global Health、PROMIS疼痛尺度はいずれも優れた構成概念妥当性、既知グループ妥当性、信頼性、構造的妥当性を示し、すべての評価基準を満たした。スコアは疾患重症度や病型サブグループを的確に識別し、年齢・性別・人種による測定不変性が確認された。</div>
-                <div class="summary-item"><strong>臨床的要点:</strong> 膵炎患者のQOL評価において標準化されたPROMIS尺度の極めて高い妥当性が証明され、今後の急性・慢性膵炎の臨床試験や実臨床アウトカム評価の共通指標として推奨される。</div>
-            </div>
-        </article>
+        <a href="[https://pubmed.ncbi.nlm.nih.gov/](https://pubmed.ncbi.nlm.nih.gov/)42913624/" target="_blank" class="paper-card-link pancreas-benign highlight">
+            <article class="paper-card">
+                <div class="card-header">
+                    <span class="badge highlight-badge">⭐ TOP HIGHLIGHT</span>
+                    <span class="badge journal-badge">Clinical and translational gastroenterology</span>
+                </div>
+                <h2 class="title-ja">急性および慢性膵炎における患者報告アウトカム（PROMIS）尺度の心理測定学的妥当性の検証：PROCEED研究</h2>
+                <p class="title-en">Psychometric Validation of PROMIS Measures in Acute and Chronic Pancreatitis.</p>
+                <div class="meta-row">
+                    <span>👤 Askew RL et al.</span>
+                    <span>📅 2026-Oct-22</span>
+                    <span class="pmid-badge">PMID: 42913624 ↗</span>
+                </div>
+                <div class="summary-box">
+                    <div class="summary-item"><strong>研究デザイン:</strong> 前向き多施設縦断コホート研究 / 1,927例</div>
+                    <div class="summary-item"><strong>主要結果:</strong> PROMIS-29、PROMIS-Global Health、PROMIS Pain Qualityスケールを解析。各PROMIS指標は正規分布を示し、全症状ドメインを包括的にカバーしていた。既存のQoL指標との良好な併存妥当性を示し、疾患サブグループ（健常者、急性膵炎、再発性急性膵炎、確診慢性膵炎）を鋭敏に識別可能であった。また、年齢・性別・人種・診断サブグループを超えて一貫した測定精度（population invariance）を保持していた。</div>
+                    <div class="summary-item"><strong>臨床的要点:</strong> 膵炎患者におけるPROMISの妥当性と信頼性が大規模コホートで証明された。日常臨床での症状モニタリングだけでなく、今後の急性・慢性膵炎の臨床試験における主要な患者報告アウトカム（PRO）として世界標準的に採用されることが期待される。</div>
+                </div>
+            </article>
+        </a>
         
-        <article class="paper-card pancreas-benign" data-category="pancreas-benign">
-            <div class="card-header">
-                
-                <span class="badge journal-badge">Pancreatology : official journal of the International Association of Pancreatology (IAP) ... [et al.]</span>
-            </div>
-            <h2 class="title-ja">急性膵炎疑いにおける一次生化学スクリーニング検査として血清リパーゼは総アミラーゼより優れている：英国リアルワールドコホート研究</h2>
-            <p class="title-en">Serum lipase outperforms total serum amylase as a first-line biochemical test for suspected acute pancreatitis: A real-world United Kingdom (UK) cohort study.</p>
-            <div class="meta-row">
-                <span>👤 Mohamed M et al.</span>
-                <span>📅 2026-Oct-20</span>
-                <a href="[https://pubmed.ncbi.nlm.nih.gov/](https://pubmed.ncbi.nlm.nih.gov/)42918710/" target="_blank" class="pmid-link">PMID: 42918710 ↗</a>
-            </div>
-            <div class="summary-box">
-                <div class="summary-item"><strong>研究デザイン:</strong> 多施設後ろ向きリアルワールドコホート研究</div>
-                <div class="summary-item"><strong>主要結果:</strong> 実臨床における急性膵炎疑い患者の初期評価において、血清リパーゼ測定は総アミラーゼ測定と比較して感度・特異度を含む診断能で有意に優れており、早期診断と偽陰性の低減に寄与した。</div>
-                <div class="summary-item"><strong>臨床的要点:</strong> 急性膵炎の初期鑑別診断においては、血清総アミラーゼではなく血清リパーゼを第一選択検査として測定すべきであることが実臨床データから再確認された。</div>
-            </div>
-        </article>
+        <a href="[https://pubmed.ncbi.nlm.nih.gov/](https://pubmed.ncbi.nlm.nih.gov/)42918710/" target="_blank" class="paper-card-link pancreas-benign">
+            <article class="paper-card">
+                <div class="card-header">
+                    
+                    <span class="badge journal-badge">Pancreatology : official journal of the International Association of Pancreatology (IAP) ... [et al.]</span>
+                </div>
+                <h2 class="title-ja">急性膵炎疑い患者に対する第一選択生化学検査として血清リパーゼは総アミラーゼより優れている：英国リアルワールドコホート研究</h2>
+                <p class="title-en">Serum lipase outperforms total serum amylase as a first-line biochemical test for suspected acute pancreatitis: A real-world United Kingdom (UK) cohort study.</p>
+                <div class="meta-row">
+                    <span>👤 Mohamed M et al.</span>
+                    <span>📅 2026-Oct-20</span>
+                    <span class="pmid-badge">PMID: 42918710 ↗</span>
+                </div>
+                <div class="summary-box">
+                    <div class="summary-item"><strong>研究デザイン:</strong> 後方視的観察コホート研究</div>
+                    <div class="summary-item"><strong>主要結果:</strong> 急性膵炎疑い例における初期生化学診断能を比較評価し、血清リパーゼが総血清アミラーゼと比較して診断感度・特異度および陰性的中率において有意に優れていることが実臨床データから示された。</div>
+                    <div class="summary-item"><strong>臨床的要点:</strong> アミラーゼ測定が慣例的に行われている施設においても、急性膵炎の初期トリアージには血清リパーゼを第一選択として測定すべきであることを支持する強力な実臨床エビデンスである。</div>
+                </div>
+            </article>
+        </a>
         
-        <article class="paper-card transplant" data-category="transplant">
-            <div class="card-header">
-                
-                <span class="badge journal-badge">Liver transplantation : official publication of the American Association for the Study of Liver Diseases and the International Liver Transplantation Society</span>
-            </div>
-            <h2 class="title-ja">小児自己免疫性肝疾患・硬化性胆管炎の肝移植における導入免疫抑制療法の有効性と安全性：SPLITレジストリ解析</h2>
-            <p class="title-en">Benefits and risks of induction immunosuppression in pediatric autoimmune liver disease from SPLIT Registry.</p>
-            <div class="meta-row">
-                <span>👤 Jarasvaraparn C et al.</span>
-                <span>📅 2026-Oct-23</span>
-                <a href="[https://pubmed.ncbi.nlm.nih.gov/](https://pubmed.ncbi.nlm.nih.gov/)42912646/" target="_blank" class="pmid-link">PMID: 42912646 ↗</a>
-            </div>
-            <div class="summary-box">
-                <div class="summary-item"><strong>研究デザイン:</strong> 国際多施設レジストリ研究（SPLIT） / 小児自己免疫性肝疾患（AIH/PSC/ASC）肝移植症例 445例</div>
-                <div class="summary-item"><strong>主要結果:</strong> 移植後30日時点の生検確定急性拒絶率はIL-2受容体拮抗薬（IL2RA）群で11.2%と、ステロイド単独群（20.9%）やATG群（28.0%）と比較して有意に低かった（P=0.05）。一方、ATG群は30〜90日後の培養陽性感染症リスクがステロイド単独群に対して10倍有意に高かった（aOR=10.0, P=0.02）。5年のグラフト生着率や死亡率に群間差はなかった。</div>
-                <div class="summary-item"><strong>臨床的要点:</strong> 小児自己免疫性硬化性胆管炎・肝疾患の肝移植において、IL2RAによる導入療法は感染合併症を増加させることなく早期拒絶反応を有意に抑制できる最適なレジメンである。</div>
-            </div>
-        </article>
+        <a href="[https://pubmed.ncbi.nlm.nih.gov/](https://pubmed.ncbi.nlm.nih.gov/)42912646/" target="_blank" class="paper-card-link transplant">
+            <article class="paper-card">
+                <div class="card-header">
+                    
+                    <span class="badge journal-badge">Liver transplantation : official publication of the American Association for the Study of Liver Diseases and the International Liver Transplantation Society</span>
+                </div>
+                <h2 class="title-ja">小児自己免疫性肝・胆道疾患肝移植における導入免疫抑制療法の利益とリスク：SPLITレジストリ解析</h2>
+                <p class="title-en">Benefits and risks of induction immunosuppression in pediatric autoimmune liver disease from SPLIT Registry.</p>
+                <div class="meta-row">
+                    <span>👤 Jarasvaraparn C et al.</span>
+                    <span>📅 2026-Oct-23</span>
+                    <span class="pmid-badge">PMID: 42912646 ↗</span>
+                </div>
+                <div class="summary-box">
+                    <div class="summary-item"><strong>研究デザイン:</strong> 多施設レジストリ後方視的コホート研究 / 445例</div>
+                    <div class="summary-item"><strong>主要結果:</strong> 原発性硬化性胆管炎（PSC）や自己免疫性肝炎など小児自己免疫性肝疾患の肝移植445例を解析。IL-2受容体拮抗薬（IL2RA）導入群は、ステロイド単独群や抗胸腺細胞グロブリン（ATG）群に比べ移植後30日以内の生検確定急性拒絶反応が有意に低率であった（11.2% vs 20.9% vs 28%、P=0.05）。一方、ATG群は30-90日の培養陽性感染症リスクがステロイド単独群に比べ10倍高かった（aOR=10.0、P=0.02）。</div>
+                    <div class="summary-item"><strong>臨床的要点:</strong> PSCを含む小児自己免疫性肝疾患の移植において、IL2RAによる導入療法は感染リスクを増大させることなく早期拒絶反応を有意に抑制できる最適なレジメンであることが示唆された。</div>
+                </div>
+            </article>
+        </a>
         
     </main>
+
+    <footer>
+        <p>&copy; 2026 Pancreatobiliary Weekly Digest. All rights reserved.</p>
+    </footer>
 
     <script>
         function filterCategory(cat, btn) {
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
 
-            const cards = document.querySelectorAll('.paper-card');
-            cards.forEach(card => {
+            const links = document.querySelectorAll('.paper-card-link');
+            links.forEach(link => {
                 if (cat === 'all') {
-                    card.style.display = 'block';
+                    link.style.display = 'block';
                 } else {
-                    if (card.classList.contains(cat)) {
-                        card.style.display = 'block';
+                    if (link.classList.contains(cat)) {
+                        link.style.display = 'block';
                     } else {
-                        card.style.display = 'none';
+                        link.style.display = 'none';
                     }
                 }
             });
