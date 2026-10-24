@@ -110,7 +110,7 @@ def fetch_pubmed_papers():
     return papers
 
 # ----------------------------------------------------
-# 2. Gemini APIで構造化JSONデータを生成
+# 2. Gemini APIで要約・分類JSONを生成
 # ----------------------------------------------------
 def analyze_papers_with_gemini(papers):
     client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
@@ -126,7 +126,6 @@ def analyze_papers_with_gemini(papers):
 以下のキーを持つJSON配列 (Array) の形式で出力してください：
 [
   {{
-    "pmid": "元のデータに含まれるPMID数字 (例: 42913703。記号やURL、[]等は一切含めず数字のみ出力すること)",
     "title_ja": "魅力的で正確な日本語タイトル",
     "title_en": "英語原題",
     "journal": "雑誌名",
@@ -169,7 +168,7 @@ def analyze_papers_with_gemini(papers):
             return json.loads(raw_text.strip())
         except Exception as e:
             wait_time = (attempt + 1) * 10
-            print(f"通信エラー発生 ({e})。{wait_time}秒後に再試行します...")
+            print(f"一時的な通信エラー ({e})。{wait_time}秒後に再試行します...")
             time.sleep(wait_time)
 
     raise RuntimeError("AIモデルの呼び出しに失敗しました。")
@@ -177,27 +176,29 @@ def analyze_papers_with_gemini(papers):
 # ----------------------------------------------------
 # 3. 完全固定のApple風HTMLテンプレートをレンダリングする
 # ----------------------------------------------------
-def build_fixed_html(analyzed_papers, original_papers, date_str, archive_list):
-    archive_options = '<option value="../index.html">最新号 (最新)</option>'
-    for arch in archive_list:
-        archive_options += f'<option value="{arch["filename"]}">{arch["date"]}</option>'
+def build_fixed_html(analyzed_papers, original_papers, date_str, archive_list, is_root=True):
+    # ドロップダウンの相対パス生成
+    archive_options = []
+    if is_root:
+        archive_options.append('<option value="index.html" selected>最新号 (最新)</option>')
+        for arch in archive_list:
+            val = f"archives/{arch['filename']}"
+            archive_options.append(f'<option value="{val}">{arch["date"]}</option>')
+    else:
+        archive_options.append('<option value="../index.html">最新号 (最新)</option>')
+        for arch in archive_list:
+            if arch["date"] in date_str:
+                archive_options.append(f'<option value="{arch["filename"]}" selected>{arch["date"]}</option>')
+            else:
+                archive_options.append(f'<option value="{arch["filename"]}">{arch["date"]}</option>')
+
+    options_html = "\n".join(archive_options)
 
     cards_html = ""
-    for p in analyzed_papers:
-        raw_pmid_str = str(p.get("pmid", ""))
-        
-        # どんな文字列が紛れ込んでも、7〜9桁の連続した「数字だけ」を抽出
-        pmid_matches = re.findall(r'\d{7,9}', raw_pmid_str)
-        if pmid_matches:
-            clean_pmid = pmid_matches[0]
-        else:
-            clean_pmid = re.sub(r'\D', '', raw_pmid_str)
-
-        # 必ず絶対URL ([https://pubmed.ncbi.nlm.nih.gov/数字/](https://pubmed.ncbi.nlm.nih.gov/数字/)) として組み立てる
-        if clean_pmid:
-            pubmed_url = f"[https://pubmed.ncbi.nlm.nih.gov/](https://pubmed.ncbi.nlm.nih.gov/){clean_pmid}/"
-        else:
-            pubmed_url = "#"
+    for i, p in enumerate(analyzed_papers):
+        # 100%正確なPubMedのPMID（PubMedから得た元の数字）を直接使用
+        clean_pmid = original_papers[i]["pmid"] if i < len(original_papers) else ""
+        pubmed_url = f"[https://pubmed.ncbi.nlm.nih.gov/](https://pubmed.ncbi.nlm.nih.gov/){clean_pmid}/" if clean_pmid else "#"
         
         highlight_badge = '<span class="badge highlight-badge">⭐ TOP HIGHLIGHT</span>' if p.get("is_highlight") else ''
         category_class = f'{p.get("category", "endo")}'
@@ -367,7 +368,7 @@ def build_fixed_html(analyzed_papers, original_papers, date_str, archive_list):
                 <div class="sub-title">Pancreatobiliary Weekly Digest ({date_str})</div>
             </div>
             <select onchange="location.href=this.value" class="archive-select">
-                {archive_options}
+                {options_html}
             </select>
         </div>
         <nav class="tabs-nav">
@@ -415,18 +416,10 @@ def build_fixed_html(analyzed_papers, original_papers, date_str, archive_list):
 # ----------------------------------------------------
 # 4. アーカイブ管理とファイル保存
 # ----------------------------------------------------
-def save_and_manage_archives(html_content, date_file_str):
+def save_and_manage_archives(analyzed_papers, original_papers, date_display_str, date_file_str):
     os.makedirs("docs/archives", exist_ok=True)
     
-    archive_filename = f"weekly-{date_file_str}.html"
-    archive_path = os.path.join("docs/archives", archive_filename)
-    with open(archive_path, "w", encoding="utf-8") as f:
-        f.write(html_content)
-        
-    with open("docs/index.html", "w", encoding="utf-8") as f:
-        f.write(html_content)
-
-def get_existing_archives():
+    # 既存アーカイブ一覧の取得
     archive_files = sorted(glob.glob("docs/archives/weekly-*.html"), reverse=True)
     archives = []
     for file_path in archive_files[:52]:
@@ -434,9 +427,24 @@ def get_existing_archives():
         date_part = filename.replace("weekly-", "").replace(".html", "")
         archives.append({
             "date": date_part,
-            "filename": f"archives/{filename}"
+            "filename": filename
         })
-    return archives
+
+    # 今回のファイルをアーカイブリストの先頭に追加
+    current_arch = {"date": date_file_str, "filename": f"weekly-{date_file_str}.html"}
+    if not any(a["date"] == date_file_str for a in archives):
+        archives.insert(0, current_arch)
+
+    # 1. トップページ (docs/index.html) の生成・保存
+    root_html = build_fixed_html(analyzed_papers, original_papers, date_display_str, archives, is_root=True)
+    with open("docs/index.html", "w", encoding="utf-8") as f:
+        f.write(root_html)
+
+    # 2. 週別アーカイブ (docs/archives/weekly-YYYY-MM-DD.html) の生成・保存
+    archive_html = build_fixed_html(analyzed_papers, original_papers, date_display_str, archives, is_root=False)
+    archive_path = os.path.join("docs/archives", f"weekly-{date_file_str}.html")
+    with open(archive_path, "w", encoding="utf-8") as f:
+        f.write(archive_html)
 
 # ----------------------------------------------------
 # メイン実行処理
@@ -448,18 +456,14 @@ if __name__ == "__main__":
     
     print(f"[{date_display_str}] 厳選54誌からの臨床研究論文アーカイブの抽出を開始します...")
     
-    existing_archives = get_existing_archives()
     papers = fetch_pubmed_papers()
     
     if papers:
         print(f"対象ジャーナルより {len(papers)} 件の厳選臨床論文を取得しました。Geminiで解析中...")
         analyzed_papers = analyze_papers_with_gemini(papers)
         
-        print("固定テンプレートでHTMLを生成中...")
-        html_content = build_fixed_html(analyzed_papers, papers, date_display_str, existing_archives)
-        
-        print("最新ページ (docs/index.html) およびアーカイブを更新中...")
-        save_and_manage_archives(html_content, date_file_str)
+        print("最新ページおよびアーカイブHTMLを書き換え中...")
+        save_and_manage_archives(analyzed_papers, papers, date_display_str, date_file_str)
         print("ウィークリーアップデートが完全成功しました！")
     else:
         print("今週の対象論文が見つかりませんでした。")
