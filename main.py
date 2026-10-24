@@ -33,7 +33,7 @@ TARGET_JOURNALS = [
 ]
 
 # ----------------------------------------------------
-# 1. PubMedから「臨床研究・原著論文のみ」「指定7日間」を取得 (POST方式)
+# 1. PubMedから「指定7日間」の論文を取得 (POST方式)
 # ----------------------------------------------------
 def fetch_pubmed_papers():
     base_url = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils"
@@ -42,14 +42,12 @@ def fetch_pubmed_papers():
     # 略語＋正式名称＋全主要疾患・処置を完全網羅した検索クエリ (移植除外)
     term_keywords = '("pancreatitis"[Title/Abstract] OR "pancreatic cancer"[Title/Abstract] OR "pancreatic ductal adenocarcinoma"[Title/Abstract] OR "PDAC"[Title/Abstract] OR "pancreatic carcinoma"[Title/Abstract] OR "pancreatic neuroendocrine tumor"[Title/Abstract] OR "PanNET"[Title/Abstract] OR "IPMN"[Title/Abstract] OR "intraductal papillary mucinous neoplasm"[Title/Abstract] OR "MCN"[Title/Abstract] OR "mucinous cystic neoplasm"[Title/Abstract] OR "SCN"[Title/Abstract] OR "serous cystic neoplasm"[Title/Abstract] OR "serous cystadenoma"[Title/Abstract] OR "pancreatic cyst"[Title/Abstract] OR "pancreatic cystic"[Title/Abstract] OR "autoimmune pancreatitis"[Title/Abstract] OR "AIP"[Title/Abstract] OR "pancreatic fistula"[Title/Abstract] OR "POPF"[Title/Abstract] OR "postoperative pancreatic fistula"[Title/Abstract] OR "pancreatic duct stricture"[Title/Abstract] OR "biliary"[Title/Abstract] OR "cholangiocarcinoma"[Title/Abstract] OR "biliary tract cancer"[Title/Abstract] OR "gallbladder cancer"[Title/Abstract] OR "gallbladder carcinoma"[Title/Abstract] OR "gallbladder disease"[Title/Abstract] OR "cholangitis"[Title/Abstract] OR "cholecystitis"[Title/Abstract] OR "choledocholithiasis"[Title/Abstract] OR "common bile duct stones"[Title/Abstract] OR "gallstone"[Title/Abstract] OR "PSC"[Title/Abstract] OR "primary sclerosing cholangitis"[Title/Abstract] OR "IgG4-related sclerosing cholangitis"[Title/Abstract] OR "choledochal cyst"[Title/Abstract] OR "biliary stricture"[Title/Abstract] OR "ampullary carcinoma"[Title/Abstract] OR "ampullary cancer"[Title/Abstract] OR "cancer of the ampulla of vater"[Title/Abstract] OR "ampullary adenoma"[Title/Abstract] OR "papillary carcinoma"[Title/Abstract] OR "papillary adenoma"[Title/Abstract] OR "papillary tumor"[Title/Abstract] OR "papilla of vater"[Title/Abstract] OR "papillectomy"[Title/Abstract] OR "endoscopic papillectomy"[Title/Abstract] OR "ERCP"[Title/Abstract] OR "endoscopic retrograde cholangiopancreatography"[Title/Abstract] OR "EUS"[Title/Abstract] OR "endoscopic ultrasound"[Title/Abstract] OR "endoscopic ultrasonography"[Title/Abstract] OR "FNA"[Title/Abstract] OR "fine needle aspiration"[Title/Abstract] OR "fine-needle aspiration"[Title/Abstract] OR "FNB"[Title/Abstract] OR "fine needle biopsy"[Title/Abstract] OR "fine-needle biopsy"[Title/Abstract] OR "EUS-TA"[Title/Abstract] OR "tissue acquisition"[Title/Abstract] OR "EUS-guided"[Title/Abstract] OR "sphincterotomy"[Title/Abstract] OR "EST"[Title/Abstract] OR "endoscopic sphincterotomy"[Title/Abstract] OR "EPBD"[Title/Abstract] OR "endoscopic papillary balloon dilation"[Title/Abstract] OR "EPLBD"[Title/Abstract] OR "endoscopic papillary large balloon dilation"[Title/Abstract] OR "cholangioscopy"[Title/Abstract] OR "pancreatoscopy"[Title/Abstract] OR "biliary stent"[Title/Abstract] OR "biliary stenting"[Title/Abstract] OR "pancreatic stent"[Title/Abstract] OR "pancreatic stenting"[Title/Abstract] OR "biliary drainage"[Title/Abstract] OR "pancreatic drainage"[Title/Abstract])'
     
-    type_filter = 'AND ("Clinical Trial"[PT] OR "Observational Study"[PT] OR "Comparative Study"[PT] OR "Multicenter Study"[PT] OR "Validation Study"[PT] OR "Journal Article"[PT]) NOT ("Review"[PT] OR "Editorial"[PT] OR "Letter"[PT] OR "Comment"[PT] OR "Case Reports"[PT])'
     date_filter = 'AND ("last 7 days"[PDat])'
-    
-    query = f"{term_keywords} {type_filter} {date_filter}"
+    query = f"{term_keywords} {date_filter}"
     
     # 長大クエリ対応のため HTTP POST リクエストを使用
     search_res = requests.post(f"{base_url}/esearch.fcgi", data={
-        "db": "pubmed", "term": query, "retmode": "json", "retmax": 60
+        "db": "pubmed", "term": query, "retmode": "json", "retmax": 80
     }, headers=headers)
     
     if search_res.status_code != 200:
@@ -99,9 +97,14 @@ def fetch_pubmed_papers():
             pub_date_str = f"{year}-{month}-{day}".strip("-") if year else (pub_date_elem.findtext("MedlineDate") or "")
 
         abstract_texts = article.findall(".//AbstractText")
-        abstract = " ".join([elem.text for elem in abstract_texts if elem.text])
+        abstract = " ".join([elem.text for elem in abstract_texts if elem.text]).strip()
         
+        # 判定：アブストラクト（要約）の存在チェック（"No abstract available" や空のアブストラクトを除外）
         lower_abstract = abstract.lower()
+        if not abstract or "no abstract available" in lower_abstract or len(abstract) < 50:
+            continue
+
+        # 判定：基礎研究（マウス・ラット・in vitro）の除外
         if "mouse model" in lower_abstract or "mice" in lower_abstract or "rat model" in lower_abstract or "in vitro" in lower_abstract:
             continue
 
@@ -210,7 +213,7 @@ def build_fixed_html(analyzed_papers, original_papers, date_str, archive_list, i
         orig_data = id_to_orig.get(paper_id, {})
         
         pmid = orig_data.get("pmid", "")
-        pubmed_url = f"https://pubmed.ncbi.nlm.nih.gov/{pmid}/" if pmid else "#"
+        pubmed_url = f"[https://pubmed.ncbi.nlm.nih.gov/](https://pubmed.ncbi.nlm.nih.gov/){pmid}/" if pmid else "#"
         
         journal = orig_data.get("journal", "")
         author = orig_data.get("author", "")
