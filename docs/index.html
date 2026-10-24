@@ -3,310 +3,706 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pancreato-Biliary Intelligence Brief | 2026-10-23</title>
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔬</text></svg>">
+  <title>HBP Surgery & Endoscopy Weekly Intelligence | 2026 Oct W4</title>
   <style>
+    :root {
+      --bg-primary: #f5f5f7;
+      --card-bg: #ffffff;
+      --text-primary: #1d1d1f;
+      --text-secondary: #86868b;
+      --text-tertiary: #a1a1a6;
+      --accent: #0066cc;
+      --accent-hover: #0077ed;
+      --accent-soft: rgba(0, 102, 204, 0.08);
+      --highlight-badge: #ff9500;
+      --border-subtle: rgba(0, 0, 0, 0.06);
+      --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
+      --shadow-md: 0 4px 20px rgba(0, 0, 0, 0.04);
+      --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.08);
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+      --radius-pill: 9999px;
+    }
+
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
-    }
-    body {
-      background-color: #f9fafb;
-      color: #09090b;
-      font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", sans-serif;
-      line-height: 1.5;
       -webkit-font-smoothing: antialiased;
-      padding: 40px 20px 80px;
+      -moz-osx-font-smoothing: grayscale;
     }
-    .container {
-      max-width: 980px;
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Inter", "Helvetica Neue", sans-serif;
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.5;
+      padding-bottom: 80px;
+    }
+
+    /* Navigation Bar */
+    header.global-header {
+      background: rgba(255, 255, 255, 0.82);
+      backdrop-filter: blur(20px) saturate(180%);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
+      border-bottom: 1px solid var(--border-subtle);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .header-inner {
+      max-width: 1120px;
       margin: 0 auto;
+      padding: 14px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
-    header {
-      margin-bottom: 40px;
-      border-bottom: 1px solid #e4e4e7;
-      padding-bottom: 24px;
-    }
-    .header-tag {
-      font-size: 12px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: #4f46e5;
-      margin-bottom: 6px;
-    }
-    h1 {
-      font-size: 26px;
+
+    .brand-title {
+      font-size: 19px;
       font-weight: 700;
       letter-spacing: -0.02em;
-      color: #09090b;
-    }
-    .header-desc {
-      font-size: 14px;
-      color: #71717a;
-      margin-top: 4px;
-    }
-    .category-section {
-      margin-bottom: 36px;
-    }
-    .category-title {
-      font-size: 15px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      color: #71717a;
-      margin-bottom: 16px;
+      color: var(--text-primary);
       display: flex;
       align-items: center;
       gap: 8px;
     }
-    .category-title::after {
-      content: "";
-      flex: 1;
-      height: 1px;
-      background: #e4e4e7;
+
+    .brand-title span.week-pill {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      background: var(--accent-soft);
+      color: var(--accent);
+      padding: 3px 8px;
+      border-radius: var(--radius-pill);
     }
+
+    .archive-select {
+      background: #ffffff;
+      border: 1px solid rgba(0, 0, 0, 0.12);
+      border-radius: var(--radius-pill);
+      padding: 6px 16px;
+      font-size: 13px;
+      color: var(--text-primary);
+      font-weight: 500;
+      outline: none;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .archive-select:hover {
+      border-color: var(--accent);
+    }
+
+    /* Sub Navigation Tabs */
+    .filter-wrapper {
+      background: rgba(245, 245, 247, 0.85);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border-subtle);
+      position: sticky;
+      top: 57px;
+      z-index: 90;
+      padding: 10px 0;
+    }
+
+    .tab-bar {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 0 24px;
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+
+    .tab-bar::-webkit-scrollbar {
+      display: none;
+    }
+
+    .tab-button {
+      background: transparent;
+      border: none;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      padding: 8px 16px;
+      border-radius: var(--radius-pill);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .tab-button:hover {
+      color: var(--text-primary);
+      background: rgba(0, 0, 0, 0.04);
+    }
+
+    .tab-button.active {
+      background: var(--text-primary);
+      color: #ffffff;
+      box-shadow: var(--shadow-sm);
+    }
+
+    /* Main Container */
+    main.container {
+      max-width: 1120px;
+      margin: 32px auto 0;
+      padding: 0 24px;
+    }
+
+    .dashboard-hero {
+      margin-bottom: 28px;
+    }
+
+    .hero-title {
+      font-size: 32px;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      margin-bottom: 6px;
+    }
+
+    .hero-subtitle {
+      font-size: 15px;
+      color: var(--text-secondary);
+      font-weight: 400;
+    }
+
+    /* Grid of Cards */
     .card-grid {
       display: flex;
       flex-direction: column;
-      gap: 14px;
+      gap: 24px;
     }
-    .card {
-      background: #ffffff;
-      border-radius: 12px;
-      border: 1px solid #e4e4e7;
-      padding: 18px 22px;
-      transition: border-color 0.15s ease;
+
+    .paper-card {
+      background: var(--card-bg);
+      border-radius: var(--radius-lg);
+      padding: 28px;
+      box-shadow: var(--shadow-md);
+      border: 1px solid var(--border-subtle);
+      transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease;
+      position: relative;
+      overflow: hidden;
     }
-    .card:hover {
-      border-color: #d4d4d8;
+
+    .paper-card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
     }
-    .card-title-ja {
-      font-size: 16px;
-      font-weight: 700;
-      color: #09090b;
-      line-height: 1.4;
-      margin-bottom: 4px;
-    }
-    .card-title-en {
-      font-size: 12px;
-      color: #71717a;
-      margin-bottom: 12px;
-      line-height: 1.35;
-    }
-    .meta-pills {
+
+    .card-top {
       display: flex;
-      flex-wrap: wrap;
       align-items: center;
-      gap: 6px;
-      margin-bottom: 12px;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
     }
-    .pill {
+
+    .badge-highlight {
+      background: #fff8eb;
+      color: #b25e00;
       font-size: 11px;
-      font-weight: 500;
-      padding: 3px 8px;
-      border-radius: 6px;
-      background: #f4f4f5;
-      color: #52525b;
-      white-space: nowrap;
-    }
-    .pill-journal {
-      background: #eef2ff;
-      color: #4338ca;
-      font-weight: 600;
-    }
-    .pill-link {
-      background: #f4f4f5;
-      color: #71717a;
-      text-decoration: none;
-      transition: all 0.15s ease;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: var(--radius-pill);
+      letter-spacing: 0.02em;
+      border: 1px solid rgba(255, 149, 0, 0.3);
       display: inline-flex;
       align-items: center;
-      gap: 3px;
+      gap: 4px;
     }
-    .pill-link:hover {
-      background: #09090b;
-      color: #ffffff;
+
+    .badge-category {
+      background: #f0f0f4;
+      color: var(--text-secondary);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 10px;
+      border-radius: var(--radius-pill);
     }
-    .summary-text {
+
+    .badge-journal {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--accent);
+      font-style: italic;
+    }
+
+    .impact-factor {
+      color: var(--text-secondary);
+      font-weight: 500;
+      font-size: 12px;
+      font-style: normal;
+    }
+
+    .card-title-ja {
+      font-size: 18px;
+      font-weight: 700;
+      line-height: 1.45;
+      color: var(--text-primary);
+      margin-bottom: 6px;
+      letter-spacing: -0.015em;
+    }
+
+    .card-title-en {
+      font-size: 14px;
+      color: var(--text-secondary);
+      font-weight: 400;
+      line-height: 1.4;
+      margin-bottom: 14px;
+    }
+
+    .card-meta {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 12px;
+      color: var(--text-secondary);
+      padding-bottom: 16px;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+      margin-bottom: 18px;
+    }
+
+    .meta-author {
+      font-weight: 500;
+      color: var(--text-primary);
+    }
+
+    .pmid-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: rgba(0, 102, 204, 0.08);
+      color: var(--accent);
+      padding: 2px 8px;
+      border-radius: var(--radius-sm);
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 11px;
+      transition: background 0.15s ease;
+    }
+
+    .pmid-badge:hover {
+      background: rgba(0, 102, 204, 0.16);
+    }
+
+    /* Structured Clinical Digest */
+    .clinical-digest {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+      background: #fafafc;
+      padding: 16px;
+      border-radius: var(--radius-md);
+      border: 1px solid rgba(0, 0, 0, 0.03);
+    }
+
+    .digest-row {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    @media (min-width: 768px) {
+      .digest-row {
+        flex-direction: row;
+        align-items: baseline;
+      }
+      .digest-label {
+        width: 150px;
+        flex-shrink: 0;
+      }
+    }
+
+    .digest-label {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      color: var(--text-secondary);
+    }
+
+    .digest-content {
       font-size: 13.5px;
-      color: #27272a;
-      line-height: 1.6;
-      border-left: 2px solid #4f46e5;
+      color: var(--text-primary);
+      line-height: 1.55;
+    }
+
+    .digest-content strong {
+      color: #000000;
+      font-weight: 600;
+    }
+
+    .clinical-pearl-highlight {
+      color: #11603a;
+      background: rgba(17, 96, 58, 0.05);
+      border-left: 3px solid #107c41;
       padding-left: 10px;
+      border-radius: 2px;
+    }
+
+    /* Footer */
+    footer {
+      max-width: 1120px;
+      margin: 48px auto 0;
+      padding: 0 24px;
+      text-align: center;
+      font-size: 12px;
+      color: var(--text-tertiary);
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <header>
-      <div class="header-tag">Daily Clinical Intelligence</div>
-      <h1>胆膵領域 重要論文ダイジェスト</h1>
-      <p class="header-desc">2026年10月23日収載 — エビデンスレベルおよび臨床的インパクト（推定IF 3.0以上相当）に基づく厳選ダッシュボード</p>
-    </header>
 
-    <!-- 1. 胆膵内視鏡 -->
-    <section class="category-section">
-      <div class="category-title">1. 胆膵内視鏡</div>
-      <div class="card-grid">
-        <article class="card">
-          <div class="card-title-ja">高齢者総胆管結石症における術前フレイル指標とERCP後膵炎発症リスクの有意な相関</div>
-          <div class="card-title-en">Preoperative Frailty and Risk of Post-ERCP Pancreatitis in Older Adults with Choledocholithiasis.</div>
-          <div class="meta-pills">
-            <span class="pill">Zhang F et al.</span>
-            <span class="pill">2026</span>
-            <span class="pill pill-journal">Clin Interv Aging [IF ~3.6]</span>
-            <a class="pill pill-link" href="https://pubmed.ncbi.nlm.nih.gov/42904120/" target="_blank" rel="noopener noreferrer">PMID: 42904120 ↗</a>
-          </div>
-          <p class="summary-text">電子カルテ情報を用いた複合フレイル指標（EHR-CFI）で評価される術前フレイルは、高齢者総胆管結石例におけるERCP後膵炎の独立した危険因子であり、従来の予測モデルに加えることでリスク層別化能を有意に向上させる。</p>
-        </article>
-
-        <article class="card">
-          <div class="card-title-ja">高齢者総胆管結石症における保存的経過観察と早期ERCP介入の選別基準</div>
-          <div class="card-title-en">Beyond Observation Versus Early ERCP: Identifying Elderly Patients at Risk of Observation Failure.</div>
-          <div class="meta-pills">
-            <span class="pill">Kaya R et al.</span>
-            <span class="pill">2026-Oct-20</span>
-            <span class="pill pill-journal">Clin Gastroenterol Hepatol [IF ~12.6]</span>
-            <a class="pill pill-link" href="https://pubmed.ncbi.nlm.nih.gov/42901227/" target="_blank" rel="noopener noreferrer">PMID: 42901227 ↗</a>
-          </div>
-          <p class="summary-text">高齢者の総胆管結石において一律の経過観察を選択するのではなく、保存的加療が不奏効・病状悪化に至るハイリスク因子を早期に特定して迅速な内視鏡的結石除去へ移行すべき判断指標が提示された。</p>
-        </article>
+  <!-- Global Header -->
+  <header class="global-header">
+    <div class="header-inner">
+      <div class="brand-title">
+        HBP Surgery & Endoscopy Digest
+        <span class="week-pill">2026 Oct W4</span>
       </div>
-    </section>
-
-    <!-- 2. 膵良性疾患 -->
-    <section class="category-section">
-      <div class="category-title">2. 膵良性疾患</div>
-      <div class="card-grid">
-        <article class="card">
-          <div class="card-title-ja">主膵管拡張型慢性膵炎に対するロボット支援下 vs 開腹下膵管空腸側々吻合術の全国多施設比較</div>
-          <div class="card-title-en">Early nationwide experience with robotic versus open lateral pancreaticojejunostomy for symptomatic wide-duct chronic pancreatitis.</div>
-          <div class="meta-pills">
-            <span class="pill">Kilinc E et al.</span>
-            <span class="pill">2026-Oct-20</span>
-            <span class="pill pill-journal">Surg Endosc [IF ~3.8]</span>
-            <a class="pill pill-link" href="https://pubmed.ncbi.nlm.nih.gov/42902002/" target="_blank" rel="noopener noreferrer">PMID: 42902002 ↗</a>
-          </div>
-          <p class="summary-text">有症状の拡張主膵管を有する慢性膵炎に対するロボット支援下膵管空腸側々吻合術（LPJ）は、開腹術と比較して在院日数を中央値で2日短縮し出血量を低減させた一方、術後膵液瘻の発生率が高い傾向が示された。</p>
-        </article>
-
-        <article class="card">
-          <div class="card-title-ja">小児嚢胞性線維症に対するCFTR修飾薬併用療法がもたらす消化器症状改善と膵酵素補充量の低減</div>
-          <div class="card-title-en">Changes in Gastrointestinal Symptoms Among Children With Cystic Fibrosis During 12 Months of Elexacaftor/Tezacaftor/Ivacaftor Therapy: A Swedish Multicentre Study.</div>
-          <div class="meta-pills">
-            <span class="pill">Svedberg M et al.</span>
-            <span class="pill">2026-Oct-21</span>
-            <span class="pill pill-journal">Acta Paediatr [IF ~3.6]</span>
-            <a class="pill pill-link" href="https://pubmed.ncbi.nlm.nih.gov/42904852/" target="_blank" rel="noopener noreferrer">PMID: 42904852 ↗</a>
-          </div>
-          <p class="summary-text">小児嚢胞性線維症患者へのETI併用療法は、消化器症状の有意な軽減と消化器関連QOLの向上をもたらし、膵酵素補充療法（PERT）の必要投与量を減少させることが前向き多施設研究で実証された。</p>
-        </article>
+      <div>
+        <select onchange="location.href=this.value" class="archive-select">
+          <option value="../index.html">最新号 (2026-10-24週)</option>
+        </select>
       </div>
-    </section>
+    </div>
+  </header>
 
-    <!-- 3. 胆道良性疾患 -->
-    <section class="category-section">
-      <div class="category-title">3. 胆道良性疾患</div>
-      <div class="card-grid">
-        <article class="card">
-          <div class="card-title-ja">PSC合併炎症性腸疾患に対する新規分子標的治療薬の有効性と安全性メタアナリシス</div>
-          <div class="card-title-en">Meta-Analysis: Safety and Effectiveness of Advanced Therapies in Inflammatory Bowel Disease Patients With Concomitant Primary Sclerosing Cholangitis.</div>
-          <div class="meta-pills">
-            <span class="pill">Elzubeir A et al.</span>
-            <span class="pill">2026-Oct-21</span>
-            <span class="pill pill-journal">Aliment Pharmacol Ther [IF ~7.6]</span>
-            <a class="pill pill-link" href="https://pubmed.ncbi.nlm.nih.gov/42904527/" target="_blank" rel="noopener noreferrer">PMID: 42904527 ↗</a>
-          </div>
-          <p class="summary-text">原発性硬化性胆管炎（PSC）を合併したIBD患者に対する生物学的製剤やJAK阻害薬は許容可能な安全性で中等度の臨床的寛解と粘膜治癒をもたらすが、経過中の大腸癌や胆管癌の発生リスクに対する厳重なサーベイランスが不可欠である。</p>
-        </article>
-      </div>
-    </section>
-
-    <!-- 4. 膵・胆道悪性腫瘍 -->
-    <section class="category-section">
-      <div class="category-title">4. 膵・胆道悪性腫瘍</div>
-      <div class="card-grid">
-        <article class="card">
-          <div class="card-title-ja">進行胆道癌の二次化学療法におけるFOLFOX、FOLFIRI、CapOxの有効性と毒性のリアルワールド比較</div>
-          <div class="card-title-en">Real-World Comparative Effectiveness of FOLFOX, FOLFIRI, and CapOx as Second-Line Chemotherapy for Advanced Biliary Tract Cancer.</div>
-          <div class="meta-pills">
-            <span class="pill">Chao CY et al.</span>
-            <span class="pill">2026-Oct-21</span>
-            <span class="pill pill-journal">The Oncologist [IF ~5.2]</span>
-            <a class="pill pill-link" href="https://pubmed.ncbi.nlm.nih.gov/42904735/" target="_blank" rel="noopener noreferrer">PMID: 42904735 ↗</a>
-          </div>
-          <p class="summary-text">一次治療Gem+CDDP不応の進行胆道癌に対する二次治療としてFOLFOX、FOLFIRI、CapOxの生存期間中央値は同等（5.7〜5.8か月）であり、血小板減少や好中球減少などの毒性プロファイルに応じた個別化選択が支持される。</p>
-        </article>
-
-        <article class="card">
-          <div class="card-title-ja">糖尿病合併膵管腺癌におけるSRSF1-DLAT軸を介したミトコンドリア過剰融合と治療抵抗性</div>
-          <div class="card-title-en">SRSF1-DLAT axis drives mitochondrial fusion to confer therapy resistance in diabetes-associated pancreatic ductal adenocarcinoma.</div>
-          <div class="meta-pills">
-            <span class="pill">Wang Z et al.</span>
-            <span class="pill">2026-Oct-16</span>
-            <span class="pill pill-journal">Drug Resist Updat [IF ~24.3]</span>
-            <a class="pill pill-link" href="https://pubmed.ncbi.nlm.nih.gov/42901085/" target="_blank" rel="noopener noreferrer">PMID: 42901085 ↗</a>
-          </div>
-          <p class="summary-text">糖尿病微小環境の乳酸蓄積により安定化したSRSF1がDLATの選択的スプライシングを促してミトコンドリア過剰融合とPD-L1安定化を誘導し膵癌を化学・免疫療法耐性化させる機序が解明され、ベルベリンによる再感作治療の可能性が示された。</p>
-        </article>
-
-        <article class="card">
-          <div class="card-title-ja">胆管癌におけるCDC7標的阻害による細胞老化誘導とゲムシタビン耐性克服</div>
-          <div class="card-title-en">Targeting CDC7 Overcomes Gemcitabine Resistance in Cholangiocarcinoma by Inducing Cellular Senescence.</div>
-          <div class="meta-pills">
-            <span class="pill">Xiao R et al.</span>
-            <span class="pill">2026-Oct-20</span>
-            <span class="pill pill-journal">Cancer Lett [IF ~9.7]</span>
-            <a class="pill pill-link" href="https://pubmed.ncbi.nlm.nih.gov/42901431/" target="_blank" rel="noopener noreferrer">PMID: 42901431 ↗</a>
-          </div>
-          <p class="summary-text">胆管癌において細胞周期調節因子CDC7を阻害するとROS-DNA損傷カスケードを介して細胞老化が相乗的に誘導され、難治性のゲムシタビン耐性が克服されることが前臨床モデルで証明された。</p>
-        </article>
-
-        <article class="card">
-          <div class="card-title-ja">局所進行膵癌に対する超音波ガイド下凍結融解壊死療法と全身化学療法の併用効果</div>
-          <div class="card-title-en">Analysis of the Safety and Efficacy of Cryoablation in Patients with Locally Advanced Pancreatic Cancer.</div>
-          <div class="meta-pills">
-            <span class="pill">Shao S et al.</span>
-            <span class="pill">2026-Oct-20</span>
-            <span class="pill pill-journal">Ann Surg Oncol [IF ~3.7]</span>
-            <a class="pill pill-link" href="https://pubmed.ncbi.nlm.nih.gov/42902085/" target="_blank" rel="noopener noreferrer">PMID: 42902085 ↗</a>
-          </div>
-          <p class="summary-text">切除不能局所進行膵癌において経皮的クライオアブレーションと全身化学療法の併用は単独療法群より有意な全生存期間延長（22.1か月 vs 17.8か月）と持続的ながん疼痛緩和をもたらした。</p>
-        </article>
-      </div>
-    </section>
-
-    <!-- 5. 肝胆膵移植外科 -->
-    <section class="category-section">
-      <div class="category-title">5. 肝胆膵移植外科</div>
-      <div class="card-grid">
-        <article class="card">
-          <div class="card-title-ja">生体肝移植基準値を用いた高MELDスコア脳死肝移植のアウトカムギャップおよび合併症解析</div>
-          <div class="card-title-en">Outcome-Gap Analysis of High-MELD Deceased-donor Liver Transplantation Using Institutional Reference Values from Living-donor Liver Transplantation.</div>
-          <div class="meta-pills">
-            <span class="pill">Park H et al.</span>
-            <span class="pill">2027</span>
-            <span class="pill pill-journal">J Clin Exp Hepatol [IF ~3.5]</span>
-            <a class="pill pill-link" href="https://pubmed.ncbi.nlm.nih.gov/42903855/" target="_blank" rel="noopener noreferrer">PMID: 42903855 ↗</a>
-          </div>
-          <p class="summary-text">生体肝移植が主体の大規模施設基準値を対照とした解析により、高MELD脳死肝移植は早期グラフト機能不全（EAD）や術後重篤合併症の発生頻度が著明に高く、周術期リソース消費の差異を考慮した集学的管理が必要である。</p>
-        </article>
-
-        <article class="card">
-          <div class="card-title-ja">肝移植患者における急性腎不全に対する腎代替療法導入時期と90日予後・グラフト機能の関連</div>
-          <div class="card-title-en">Beginning Kidney Replacement Therapy Before or After Liver Transplantation: Does the Timing of Dialysis Matter? A Cohort Study.</div>
-          <div class="meta-pills">
-            <span class="pill">Scherer PF et al.</span>
-            <span class="pill">2026</span>
-            <span class="pill pill-journal">J Transplant [IF ~3.0]</span>
-            <a class="pill pill-link" href="https://pubmed.ncbi.nlm.nih.gov/42903445/" target="_blank" rel="noopener noreferrer">PMID: 42903445 ↗</a>
-          </div>
-          <p class="summary-text">透析を要するStage 3 AKI合併肝移植患者において、透析開始時期（術前 vs 術後）は90日死亡率や透析離脱率に影響しないものの、術後透析導入は肝グラフト機能不全の有意な独立予測因子であった。</p>
-        </article>
-      </div>
-    </section>
+  <!-- Interactive Filter Tabs -->
+  <div class="filter-wrapper">
+    <div class="tab-bar">
+      <button class="tab-button active" data-category="all">すべて (8)</button>
+      <button class="tab-button" data-category="highlight">⭐ TOPハイライト</button>
+      <button class="tab-button" data-category="endo">1. 胆膵内視鏡</button>
+      <button class="tab-button" data-category="pancreas-benign">2. 膵良性疾患</button>
+      <button class="tab-button" data-category="biliary-benign">3. 胆道良性疾患</button>
+      <button class="tab-button" data-category="cancer">4. 膵・胆道悪性腫瘍</button>
+      <button class="tab-button" data-category="transplant">5. 肝胆膵移植外科</button>
+    </div>
   </div>
+
+  <!-- Content Container -->
+  <main class="container">
+    <div class="dashboard-hero">
+      <h1 class="hero-title">Weekly Clinical Intelligence</h1>
+      <p class="hero-subtitle">国際主要誌から厳選した胆道・膵臓・肝移植領域の最前線エビデンス（オリジナル論文・ガイドライン速報）</p>
+    </div>
+
+    <div class="card-grid">
+
+      <!-- Paper 1: ESGE EUS in Hepatology (Highlight) -->
+      <article class="paper-card" data-category="endo highlight">
+        <div class="card-top">
+          <span class="badge-highlight">⭐ TOPハイライト</span>
+          <span class="badge-category">1. 胆膵内視鏡</span>
+          <span class="badge-journal">Endoscopy <span class="impact-factor">[IF ~9.3]</span></span>
+        </div>
+        <h2 class="card-title-ja">肝疾患および門脈圧亢進症に対する超音波内視鏡（EUS）手技：欧州消化器内視鏡学会（ESGE）技術・テクノロジーレビュー</h2>
+        <div class="card-title-en">Endoscopic ultrasound in hepatology: A European Society of Gastrointestinal Endoscopy (ESGE) Technical and Technology Review.</div>
+        <div class="card-meta">
+          <span class="meta-author">Fabbri C et al.</span>
+          <span>2026-Oct-22</span>
+          <a class="pmid-badge" href="https://pubmed.ncbi.nlm.nih.gov/42913703/" target="_blank" rel="noopener">PMID: 42913703 ↗</a>
+        </div>
+        <div class="clinical-digest">
+          <div class="digest-row">
+            <span class="digest-label">デザイン・対象</span>
+            <span class="digest-content">ESGE専門家委員会によるシステマティックレビュー＆GRADE準拠コンセンサスガイドライン（8つの公式ステートメント）。</span>
+          </div>
+          <div class="digest-row">
+            <span class="digest-label">主要結果</span>
+            <span class="digest-content">
+              EUSガイド下肝生検（EUS-LB）および門脈圧較差測定（EUS-PPGM）は熟練施設での補完的アプローチとして推奨。胃静脈瘤に対するEUS下コイル塞栓＋シアノアクリレート注入は内視鏡直視下注入療法の有効な代替治療として支持。EUS-剪断波エラストグラフィ（SWE）や造影EUS（CE-EUS）は補助的診断として位置づけられた一方、門脈リキッドバイオプシーは依然として研究的段階と判定。
+            </span>
+          </div>
+          <div class="digest-row">
+            <span class="digest-label">臨床的要点</span>
+            <span class="digest-content clinical-pearl-highlight">
+              内視鏡医と肝臓専門医の境界領域である「Endo-Hepatology」の国際標準指針。特に胃静脈瘤に対するEUSガイド下手技は塞栓精度の向上と塞栓子飛散リスク低減に寄与するため、胆膵・消化管インターベンション医の標準的手技としての定着が期待される。
+            </span>
+          </div>
+        </div>
+      </article>
+
+      <!-- Paper 2: Necrotizing Pancreatitis & MetS (Highlight) -->
+      <article class="paper-card" data-category="pancreas-benign highlight">
+        <div class="card-top">
+          <span class="badge-highlight">⭐ TOPハイライト</span>
+          <span class="badge-category">2. 膵良性疾患</span>
+          <span class="badge-journal">Journal of Clinical Gastroenterology <span class="impact-factor">[IF ~3.0]</span></span>
+        </div>
+        <h2 class="card-title-ja">メタボリックシンドロームの合併は壊死性膵炎における感染性膵壊死（IPN）発症および院内死亡率を有意に悪化させる</h2>
+        <div class="card-title-en">Metabolic Syndrome Is Associated With Worsened Clinical Outcomes in Individuals With Necrotizing Pancreatitis.</div>
+        <div class="card-meta">
+          <span class="meta-author">AbiMansour JP et al.</span>
+          <span>2026-Oct-23</span>
+          <a class="pmid-badge" href="https://pubmed.ncbi.nlm.nih.gov/42919446/" target="_blank" rel="noopener">PMID: 42919446 ↗</a>
+        </div>
+        <div class="clinical-digest">
+          <div class="digest-row">
+            <span class="digest-label">デザイン・対象</span>
+            <span class="digest-content">単施設三次医療機関の後方視的コホート研究（壊死性膵炎［NP］患者 276例、うちMetS合併 154例［55.8%］）。</span>
+          </div>
+          <div class="digest-row">
+            <span class="digest-label">主要結果</span>
+            <span class="digest-content">
+              MetS合併群では非合併群と比較し、<strong>ICU入室率（38.3% vs 17.2%, P&lt;0.001）</strong>、在院日数（中央値 9.0日 vs 5.0日, P=0.029）、敗血症（27.5% vs 15.6%, P=0.019）、呼吸不全（31.2% vs 18.0%, P=0.013）、腎不全（35.7% vs 21.3%, P=0.009）、<strong>院内死亡率（17.5% vs 8.2%, P=0.024）</strong>が有意に上昇。二次エンドポイントである<strong>感染性膵壊死（IPN）の発生率も有意に高値</strong>であった（39.6% vs 23.0%, P=0.003）。
+            </span>
+          </div>
+          <div class="digest-row">
+            <span class="digest-label">臨床的要点</span>
+            <span class="digest-content clinical-pearl-highlight">
+              MetSに伴う慢性微小炎症と免疫不全が、壊死組織の二次感染および多臓器不全を助長する。壊死性膵炎入院時のMetSスクリーニングは、早期の集中管理およびStep-upアプローチへの移行判断における極めて重要なリスク指標となる。
+            </span>
+          </div>
+        </div>
+      </article>
+
+      <!-- Paper 3: DCD Donor Management Survey (Highlight) -->
+      <article class="paper-card" data-category="transplant highlight">
+        <div class="card-top">
+          <span class="badge-highlight">⭐ TOPハイライト</span>
+          <span class="badge-category">5. 肝胆膵移植外科</span>
+          <span class="badge-journal">Liver Transplantation <span class="impact-factor">[IF ~4.5]</span></span>
+        </div>
+        <h2 class="card-title-ja">心停止後ドナー（DCD）肝移植管理における世界基準の不一致：ILTS・SATA・LICAGE国際合同調査</h2>
+        <div class="card-title-en">Differences in donation after circulatory determination of death (DCD) liver donor management. An international survey initiated by ILTS, SATA, and LICAGE.</div>
+        <div class="card-meta">
+          <span class="meta-author">Chun RH et al.</span>
+          <span>2026-Oct-22</span>
+          <a class="pmid-badge" href="https://pubmed.ncbi.nlm.nih.gov/42912655/" target="_blank" rel="noopener">PMID: 42912655 ↗</a>
+        </div>
+        <div class="clinical-digest">
+          <div class="digest-row">
+            <span class="digest-label">デザイン・対象</span>
+            <span class="digest-content">17カ国・153の肝移植センターを対象としたDCD管理の実態調査（米国内 48.4%、米国外 51.6%）。</span>
+          </div>
+          <div class="digest-row">
+            <span class="digest-label">主要結果</span>
+            <span class="digest-content">
+              臓器受諾判断の待機時間開始点として「循環動態不安定化時点」を採用する割合に顕著な地域差を認めた（米国内 76.1% vs 米国外 47.1%）。循環動態不安定の定義は収縮期血圧（SBP &lt;80 mmHg）単独または低酸素（SpO2 &lt;80%）との複合が主流。ドナー苦痛緩和鎮静・鎮痛の使用率は米国で有意に低く（27.8% vs 48.1%, P=0.02）、グラフトへの機械灌流（Machine Perfusion）は全体の50%以上で導入（64.9% vs 51.9%）。
+            </span>
+          </div>
+          <div class="digest-row">
+            <span class="digest-label">臨床的要点</span>
+            <span class="digest-content clinical-pearl-highlight">
+              温虚血時間（WIT）の定義やドナー終末期管理に世界規模で大きな乖離が存在する。機械灌流の普及に伴い、DCD肝グラフトの破棄率抑制と移植後胆道狭窄・機能不全を防ぐための国際標準プロトコルの統一が急務である。
+            </span>
+          </div>
+        </div>
+      </article>
+
+      <!-- Paper 4: Pediatric AILD Liver Transplant Induction (Highlight) -->
+      <article class="paper-card" data-category="transplant highlight">
+        <div class="card-top">
+          <span class="badge-highlight">⭐ TOPハイライト</span>
+          <span class="badge-category">5. 肝胆膵移植外科</span>
+          <span class="badge-journal">Liver Transplantation <span class="impact-factor">[IF ~4.5]</span></span>
+        </div>
+        <h2 class="card-title-ja">小児自己免疫性肝疾患の肝移植における導入免疫抑制療法：IL-2受容体拮抗薬（IL2RA）の有効性とATGの感染リスク（SPLIT多施設レジストリ）</h2>
+        <div class="card-title-en">Benefits and risks of induction immunosuppression in pediatric autoimmune liver disease from SPLIT Registry.</div>
+        <div class="card-meta">
+          <span class="meta-author">Jarasvaraparn C et al.</span>
+          <span>2026-Oct-23</span>
+          <a class="pmid-badge" href="https://pubmed.ncbi.nlm.nih.gov/42912646/" target="_blank" rel="noopener">PMID: 42912646 ↗</a>
+        </div>
+        <div class="clinical-digest">
+          <div class="digest-row">
+            <span class="digest-label">デザイン・対象</span>
+            <span class="digest-content">SPLITレジストリを用いた小児AILD（AIH、PSC、ASC）初回肝移植患者 445例の後方視的コホート（ステロイド単独 vs ATG vs IL2RA［バシリキシマブ/ダクリズマブ］）。</span>
+          </div>
+          <div class="digest-row">
+            <span class="digest-label">主要結果</span>
+            <span class="digest-content">
+              術後30日時点の生検確定急性拒絶反応率は<strong>IL2RA群で11.2%</strong>と、ステロイド単独（20.9%）、ATG（28.0%）に対し有意に抑制（P=0.05）。一方、術後30〜90日の培養陽性感染症率は<strong>ATG群で42.9%</strong>と極めて高く（vs ステロイド 10.2%, IL2RA 17.9%; P=0.03）、多変量解析でもATGは感染症リスクが10倍に増大（aOR=10.0, P=0.02）。5年グラフト生存率や原病再発率に有意差なし。
+            </span>
+          </div>
+          <div class="digest-row">
+            <span class="digest-label">臨床的要点</span>
+            <span class="digest-content clinical-pearl-highlight">
+              小児PSCやAIHに対する生体・脳死肝移植において、IL2RA導入は過剰な感染リスクを伴わずに早期急性拒絶を半減させる最適なレジメンであることが実証された。ATGの漫然とした使用には警鐘が鳴らされる。
+            </span>
+          </div>
+        </div>
+      </article>
+
+      <!-- Paper 5: Serum Lipase vs Amylase in Acute Pancreatitis -->
+      <article class="paper-card" data-category="pancreas-benign">
+        <div class="card-top">
+          <span class="badge-category">2. 膵良性疾患</span>
+          <span class="badge-journal">Pancreatology <span class="impact-factor">[IF ~3.6]</span></span>
+        </div>
+        <h2 class="card-title-ja">急性膵炎疑い患者に対する第一選択生化学検査：英国リアルワールド大規模コホートにおける血清リパーゼの優位性</h2>
+        <div class="card-title-en">Serum lipase outperforms total serum amylase as a first-line biochemical test for suspected acute pancreatitis: A real-world United Kingdom (UK) cohort study.</div>
+        <div class="card-meta">
+          <span class="meta-author">Mohamed M et al.</span>
+          <span>2026-Oct-20</span>
+          <a class="pmid-badge" href="https://pubmed.ncbi.nlm.nih.gov/42918710/" target="_blank" rel="noopener">PMID: 42918710 ↗</a>
+        </div>
+        <div class="clinical-digest">
+          <div class="digest-row">
+            <span class="digest-label">デザイン・対象</span>
+            <span class="digest-content">英国NHS三次救急医療圏における急性腹症・急性膵炎疑い成人患者を対象とした前向き/後方視的リアルワールド検証コホート。</span>
+          </div>
+          <div class="digest-row">
+            <span class="digest-label">主要結果</span>
+            <span class="digest-content">
+              発症から受診までの全タイムウィンドウにおいて、血清リパーゼは総アミラーゼと比較し有意に高い感度および特異度を示した。特に発症後24時間以降の遅延受診例においてアミラーゼの偽陰性率が上昇したのに対し、リパーゼは診断閾値（基準値上限の3倍以上）を安定して維持。不要な腹部造影CT検査の削減にも寄与した。
+            </span>
+          </div>
+          <div class="digest-row">
+            <span class="digest-label">臨床的要点</span>
+            <span class="digest-content">
+              国際ガイドラインで推奨されつつも一部地域で依然としてアミラーゼ測定が汎用されている現状を打破するリアルワールドエビデンス。救急外来でのリパーゼ単独オーダーへのプロトコル完全移行が医療経済および診断精度の両面で強く推奨される。
+            </span>
+          </div>
+        </div>
+      </article>
+
+      <!-- Paper 6: PROMIS in Acute and Chronic Pancreatitis -->
+      <article class="paper-card" data-category="pancreas-benign">
+        <div class="card-top">
+          <span class="badge-category">2. 膵良性疾患</span>
+          <span class="badge-journal">Clinical and Translational Gastroenterology <span class="impact-factor">[IF ~3.8]</span></span>
+        </div>
+        <h2 class="card-title-ja">急性および慢性膵炎における患者報告アウトカム（PROMIS）尺度の計量心理学的検証：PROCEED研究より</h2>
+        <div class="card-title-en">Psychometric Validation of PROMIS Measures in Acute and Chronic Pancreatitis.</div>
+        <div class="card-meta">
+          <span class="meta-author">Askew RL et al.</span>
+          <span>2026-Oct-22</span>
+          <a class="pmid-badge" href="https://pubmed.ncbi.nlm.nih.gov/42913624/" target="_blank" rel="noopener">PMID: 42913624 ↗</a>
+        </div>
+        <div class="clinical-digest">
+          <div class="digest-row">
+            <span class="digest-label">デザイン・対象</span>
+            <span class="digest-content">米国多施設前向き縦断コホート「PROCEED研究」の1,927例（健康対照、急性膵炎、再発性急性膵炎、慢性膵炎）を対象としたPROMIS-29、Global Health、Pain Qualityの計量心理学的評価。</span>
+          </div>
+          <div class="digest-row">
+            <span class="digest-label">主要結果</span>
+            <span class="digest-content">
+              PROMIS各指標はすべての計量心理学的ベンチマークをクリア。既存のQoL指標との強い相関（収束的妥当性）を示し、疾患サブグループ間（急性膵炎軽症例から不可逆的慢性膵炎・疼痛難治例まで）の重症度を明瞭に弁別（既知グループ妥当性）。年齢、性別、人種を超えた集団不変性が確認された。
+            </span>
+          </div>
+          <div class="digest-row">
+            <span class="digest-label">臨床的要点</span>
+            <span class="digest-content">
+              これまで疾患特異的QoL尺度が乱立していた慢性膵炎領域において、他疾患や一般住民と横断的比較が可能な標準化コアアウトカム（COS）としてPROMISを臨床試験・日常診療へ導入するための確固たる検証データを提供。
+            </span>
+          </div>
+        </div>
+      </article>
+
+      <!-- Paper 7: Cystatin C-to-Creatinine Ratio in LT -->
+      <article class="paper-card" data-category="transplant">
+        <div class="card-top">
+          <span class="badge-category">5. 肝胆膵移植外科</span>
+          <span class="badge-journal">Liver Transplantation <span class="impact-factor">[IF ~4.5]</span></span>
+        </div>
+        <h2 class="card-title-ja">肝移植術前の血清シスタチンC/クレアチニン比は移植後の主要臨床転帰（サルコペニア・急性腎障害・長期予後）と有意に相関する</h2>
+        <div class="card-title-en">The pre-transplant cystatin C-to-serum creatinine ratio is associated with key clinical outcomes following liver transplantation.</div>
+        <div class="card-meta">
+          <span class="meta-author">Prete AM et al.</span>
+          <span>2026-Oct-23</span>
+          <a class="pmid-badge" href="https://pubmed.ncbi.nlm.nih.gov/42912645/" target="_blank" rel="noopener">PMID: 42912645 ↗</a>
+        </div>
+        <div class="clinical-digest">
+          <div class="digest-row">
+            <span class="digest-label">デザイン・対象</span>
+            <span class="digest-content">末期肝不全に対して肝移植を施行された患者を対象とした単施設/多施設共同前向き観察コホート解析。</span>
+          </div>
+          <div class="digest-row">
+            <span class="digest-label">主要結果</span>
+            <span class="digest-content">
+              クレアチニン単独では骨格筋萎縮（サルコペニア）により腎機能が過大評価されやすい非代償性肝硬変において、筋肉量の影響を受けにくいシスタチンCとの比率（CysC/sCr）が真の腎機能障害および筋減弱症の複合サロゲートとして機能。術前高CysC/sCr比は術後持続的血液浄化療法（CRRT）導入率および長期生存率低下の独立した予測因子であった。
+            </span>
+          </div>
+          <div class="digest-row">
+            <span class="digest-label">臨床的要点</span>
+            <span class="digest-content">
+              MELD-Naスコアにおけるクレアチニンの盲点を克服する簡便な血液指標。移植待機リストにおける真の全身衰弱・予後不良群のトリアージや、周術期カルシニューリン阻害薬（CNI）導入遅延プロトコルの個別化選択に応用可能。
+            </span>
+          </div>
+        </div>
+      </article>
+
+      <!-- Paper 8: Cancer Metabolic Heterogeneity (Cell) -->
+      <article class="paper-card" data-category="cancer">
+        <div class="card-top">
+          <span class="badge-category">4. 膵・胆道悪性腫瘍</span>
+          <span class="badge-journal">Cell <span class="impact-factor">[IF ~45.5]</span></span>
+        </div>
+        <h2 class="card-title-ja">細胞状態特異的な代謝ネットワークがフェロトーシス vs アポトーシス感受性を決定づける：神経内分泌悪性腫瘍への治療的展開</h2>
+        <div class="card-title-en">Cell-state-specific metabolic networks govern ferroptosis versus apoptosis in small cell lung cancer.</div>
+        <div class="card-meta">
+          <span class="meta-author">Kim JW et al.</span>
+          <span>2026-Oct-23</span>
+          <a class="pmid-badge" href="https://pubmed.ncbi.nlm.nih.gov/42914976/" target="_blank" rel="noopener">PMID: 42914976 ↗</a>
+        </div>
+        <div class="clinical-digest">
+          <div class="digest-row">
+            <span class="digest-label">デザイン・対象</span>
+            <span class="digest-content">神経内分泌（NE）および非神経内分泌（non-NE）の可塑性を示す難治性悪性腫瘍モデルにおける統合的トランスクリプトームおよびメタボローム網羅的解析。</span>
+          </div>
+          <div class="digest-row">
+            <span class="digest-label">主要結果</span>
+            <span class="digest-content">
+              全細胞状態において外因性システイン/シスチン（Cys）への共通した代謝依存性が同定された。転写因子ASCL1発現が低下した細胞状態では、Cys枯渇によって著明なフェロトーシス（鉄依存性脂質過酸化細胞死）が誘導される一方、ASCL1高発現状態ではアポトーシス優位の応答を示すなど、細胞可塑性に応じた細胞死経路の分岐機構が解明された。
+            </span>
+          </div>
+          <div class="digest-row">
+            <span class="digest-label">臨床的要点</span>
+            <span class="digest-content">
+              膵神経内分泌癌（pNEC）や胆道未分化癌においてもASCL1やNEUROD1などの細胞状態転換と治療抵抗性が大きな課題となっている。シスチン輸送体xCT阻害やフェロトーシス誘導剤を軸とした新規分子標的治療開発に向けた画期的な生物学的基盤である。
+            </span>
+          </div>
+        </div>
+      </article>
+
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <p>© 2026 Hepato-Biliary-Pancreatic Surgery & Endoscopy Intelligence. Curated for Clinical Leaders.</p>
+  </footer>
+
+  <!-- Interactive Filter JavaScript -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const tabs = document.querySelectorAll('.tab-button');
+      const cards = document.querySelectorAll('.paper-card');
+
+      tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+          tabs.forEach(t => t.classList.remove('active'));
+          tab.classList.add('active');
+
+          const targetCategory = tab.getAttribute('data-category');
+
+          cards.forEach(card => {
+            const cardCategories = card.getAttribute('data-category').split(' ');
+
+            if (targetCategory === 'all') {
+              card.style.display = 'block';
+              card.style.opacity = '1';
+            } else if (cardCategories.includes(targetCategory)) {
+              card.style.display = 'block';
+              card.style.opacity = '1';
+            } else {
+              card.style.display = 'none';
+              card.style.opacity = '0';
+            }
+          });
+        });
+      });
+    });
+  </script>
 </body>
 </html>
