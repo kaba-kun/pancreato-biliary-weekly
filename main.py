@@ -33,12 +33,13 @@ TARGET_JOURNALS = [
 ]
 
 # ----------------------------------------------------
-# 1. PubMedから「臨床研究・原著論文のみ」「指定7日間」を取得
+# 1. PubMedから「臨床研究・原著論文のみ」「指定7日間」を取得 (POST方式)
 # ----------------------------------------------------
 def fetch_pubmed_papers():
     base_url = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils"
+    headers = {"User-Agent": "PancreatobiliaryDigest/1.0"}
     
-    # 略語＋正式名称＋全主要疾患・処置（EST/EPBD/FNA/FNB/EUS-TA/乳頭切除/papillary表現網羅）
+    # 略語＋正式名称＋全主要疾患・処置を完全網羅した検索クエリ (移植除外)
     term_keywords = '("pancreatitis"[Title/Abstract] OR "pancreatic cancer"[Title/Abstract] OR "pancreatic ductal adenocarcinoma"[Title/Abstract] OR "PDAC"[Title/Abstract] OR "pancreatic carcinoma"[Title/Abstract] OR "pancreatic neuroendocrine tumor"[Title/Abstract] OR "PanNET"[Title/Abstract] OR "IPMN"[Title/Abstract] OR "intraductal papillary mucinous neoplasm"[Title/Abstract] OR "MCN"[Title/Abstract] OR "mucinous cystic neoplasm"[Title/Abstract] OR "SCN"[Title/Abstract] OR "serous cystic neoplasm"[Title/Abstract] OR "serous cystadenoma"[Title/Abstract] OR "pancreatic cyst"[Title/Abstract] OR "pancreatic cystic"[Title/Abstract] OR "autoimmune pancreatitis"[Title/Abstract] OR "AIP"[Title/Abstract] OR "pancreatic fistula"[Title/Abstract] OR "POPF"[Title/Abstract] OR "postoperative pancreatic fistula"[Title/Abstract] OR "pancreatic duct stricture"[Title/Abstract] OR "biliary"[Title/Abstract] OR "cholangiocarcinoma"[Title/Abstract] OR "biliary tract cancer"[Title/Abstract] OR "gallbladder cancer"[Title/Abstract] OR "gallbladder carcinoma"[Title/Abstract] OR "gallbladder disease"[Title/Abstract] OR "cholangitis"[Title/Abstract] OR "cholecystitis"[Title/Abstract] OR "choledocholithiasis"[Title/Abstract] OR "common bile duct stones"[Title/Abstract] OR "gallstone"[Title/Abstract] OR "PSC"[Title/Abstract] OR "primary sclerosing cholangitis"[Title/Abstract] OR "IgG4-related sclerosing cholangitis"[Title/Abstract] OR "choledochal cyst"[Title/Abstract] OR "biliary stricture"[Title/Abstract] OR "ampullary carcinoma"[Title/Abstract] OR "ampullary cancer"[Title/Abstract] OR "cancer of the ampulla of vater"[Title/Abstract] OR "ampullary adenoma"[Title/Abstract] OR "papillary carcinoma"[Title/Abstract] OR "papillary adenoma"[Title/Abstract] OR "papillary tumor"[Title/Abstract] OR "papilla of vater"[Title/Abstract] OR "papillectomy"[Title/Abstract] OR "endoscopic papillectomy"[Title/Abstract] OR "ERCP"[Title/Abstract] OR "endoscopic retrograde cholangiopancreatography"[Title/Abstract] OR "EUS"[Title/Abstract] OR "endoscopic ultrasound"[Title/Abstract] OR "endoscopic ultrasonography"[Title/Abstract] OR "FNA"[Title/Abstract] OR "fine needle aspiration"[Title/Abstract] OR "fine-needle aspiration"[Title/Abstract] OR "FNB"[Title/Abstract] OR "fine needle biopsy"[Title/Abstract] OR "fine-needle biopsy"[Title/Abstract] OR "EUS-TA"[Title/Abstract] OR "tissue acquisition"[Title/Abstract] OR "EUS-guided"[Title/Abstract] OR "sphincterotomy"[Title/Abstract] OR "EST"[Title/Abstract] OR "endoscopic sphincterotomy"[Title/Abstract] OR "EPBD"[Title/Abstract] OR "endoscopic papillary balloon dilation"[Title/Abstract] OR "EPLBD"[Title/Abstract] OR "endoscopic papillary large balloon dilation"[Title/Abstract] OR "cholangioscopy"[Title/Abstract] OR "pancreatoscopy"[Title/Abstract] OR "biliary stent"[Title/Abstract] OR "biliary stenting"[Title/Abstract] OR "pancreatic stent"[Title/Abstract] OR "pancreatic stenting"[Title/Abstract] OR "biliary drainage"[Title/Abstract] OR "pancreatic drainage"[Title/Abstract])'
     
     type_filter = 'AND ("Clinical Trial"[PT] OR "Observational Study"[PT] OR "Comparative Study"[PT] OR "Multicenter Study"[PT] OR "Validation Study"[PT] OR "Journal Article"[PT]) NOT ("Review"[PT] OR "Editorial"[PT] OR "Letter"[PT] OR "Comment"[PT] OR "Case Reports"[PT])'
@@ -46,17 +47,22 @@ def fetch_pubmed_papers():
     
     query = f"{term_keywords} {type_filter} {date_filter}"
     
-    search_res = requests.get(f"{base_url}/esearch.fcgi", params={
+    # 長大クエリ対応のため HTTP POST リクエストを使用
+    search_res = requests.post(f"{base_url}/esearch.fcgi", data={
         "db": "pubmed", "term": query, "retmode": "json", "retmax": 60
-    }).json()
+    }, headers=headers)
     
-    id_list = search_res.get("esearchresult", {}).get("idlist", [])
+    if search_res.status_code != 200:
+        print(f"PubMed Search Error: HTTP {search_res.status_code}")
+        return []
+        
+    id_list = search_res.json().get("esearchresult", {}).get("idlist", [])
     if not id_list:
         return []
 
-    fetch_res = requests.get(f"{base_url}/efetch.fcgi", params={
+    fetch_res = requests.post(f"{base_url}/efetch.fcgi", data={
         "db": "pubmed", "id": ",".join(id_list), "retmode": "xml"
-    })
+    }, headers=headers)
     
     root = ET.fromstring(fetch_res.content)
     papers = []
