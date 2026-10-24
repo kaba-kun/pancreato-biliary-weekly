@@ -109,7 +109,7 @@ def fetch_pubmed_papers():
     return papers
 
 # ----------------------------------------------------
-# 2. Gemini APIに構造化JSONデータのみを生成させる
+# 2. Gemini APIで構造化JSONデータを生成
 # ----------------------------------------------------
 def analyze_papers_with_gemini(papers):
     client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
@@ -180,30 +180,35 @@ def build_fixed_html(analyzed_papers, date_str, archive_list):
 
     cards_html = ""
     for p in analyzed_papers:
+        pmid = p.get("pmid", "")
+        pubmed_url = f"[https://pubmed.ncbi.nlm.nih.gov/](https://pubmed.ncbi.nlm.nih.gov/){pmid}/" if pmid else "#"
+        
         highlight_badge = '<span class="badge highlight-badge">⭐ TOP HIGHLIGHT</span>' if p.get("is_highlight") else ''
         category_class = f'{p.get("category", "endo")}'
         if p.get("is_highlight"):
             category_class += " highlight"
 
         cards_html += f"""
-        <article class="paper-card {category_class}" data-category="{category_class}">
-            <div class="card-header">
-                {highlight_badge}
-                <span class="badge journal-badge">{p.get("journal", "")}</span>
-            </div>
-            <h2 class="title-ja">{p.get("title_ja", "")}</h2>
-            <p class="title-en">{p.get("title_en", "")}</p>
-            <div class="meta-row">
-                <span>👤 {p.get("author", "")}</span>
-                <span>📅 {p.get("pub_date", "")}</span>
-                <a href="[https://pubmed.ncbi.nlm.nih.gov/](https://pubmed.ncbi.nlm.nih.gov/){p.get('pmid', '')}/" target="_blank" class="pmid-link">PMID: {p.get("pmid", "")} ↗</a>
-            </div>
-            <div class="summary-box">
-                <div class="summary-item"><strong>研究デザイン:</strong> {p.get("study_design", "")}</div>
-                <div class="summary-item"><strong>主要結果:</strong> {p.get("results", "")}</div>
-                <div class="summary-item"><strong>臨床的要点:</strong> {p.get("takeaway", "")}</div>
-            </div>
-        </article>
+        <a href="{pubmed_url}" target="_blank" class="paper-card-link {category_class}">
+            <article class="paper-card">
+                <div class="card-header">
+                    {highlight_badge}
+                    <span class="badge journal-badge">{p.get("journal", "")}</span>
+                </div>
+                <h2 class="title-ja">{p.get("title_ja", "")}</h2>
+                <p class="title-en">{p.get("title_en", "")}</p>
+                <div class="meta-row">
+                    <span>👤 {p.get("author", "")}</span>
+                    <span>📅 {p.get("pub_date", "")}</span>
+                    <span class="pmid-badge">PMID: {pmid} ↗</span>
+                </div>
+                <div class="summary-box">
+                    <div class="summary-item"><strong>研究デザイン:</strong> {p.get("study_design", "")}</div>
+                    <div class="summary-item"><strong>主要結果:</strong> {p.get("results", "")}</div>
+                    <div class="summary-item"><strong>臨床的要点:</strong> {p.get("takeaway", "")}</div>
+                </div>
+            </article>
+        </a>
         """
 
     full_html = f"""<!DOCTYPE html>
@@ -211,6 +216,12 @@ def build_fixed_html(analyzed_papers, date_str, archive_list):
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- 検索エンジン用の説明文 -->
+    <meta name="description" content="直近1週間に公表された胆膵疾患・胆膵内視鏡領域の主要臨床論文（Original Article）の要約ダッシュボード。">
+    <!-- SNS（X/Facebook等）でシェアされた時の表示設定 (OGP) -->
+    <meta property="og:title" content="今週の胆膵疾患研究ハイライト | Pancreatobiliary Weekly Digest">
+    <meta property="og:description" content="主要54誌から厳選した胆膵領域の最新臨床研究・一文要約サマリー。">
+    <meta property="og:type" content="website">
     <title>今週の胆膵疾患研究ハイライト</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22[http://www.w3.org/2000/svg%22](http://www.w3.org/2000/svg%22) viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔬</text></svg>">
     <style>
@@ -229,10 +240,10 @@ def build_fixed_html(analyzed_papers, date_str, archive_list):
             color: var(--text-main);
             line-height: 1.5;
             -webkit-font-smoothing: antialiased;
-            padding-bottom: 80px;
+            padding-bottom: 40px;
         }}
         header {{
-            background: rgba(255, 255, 255, 0.8);
+            background: rgba(255, 255, 255, 0.85);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
             position: sticky;
@@ -248,7 +259,7 @@ def build_fixed_html(analyzed_papers, date_str, archive_list):
             justify-content: space-between;
             align-items: center;
         }}
-        .site-title {{ font-size: 20px; font-weight: 700; letter-spacing: -0.02em; }}
+        .site-title {{ font-size: 20px; font-weight: 700; letter-spacing: -0.02em; color: var(--text-main); }}
         .sub-title {{ font-size: 13px; color: var(--text-sub); margin-top: 2px; }}
         .archive-select {{
             padding: 8px 12px;
@@ -257,6 +268,7 @@ def build_fixed_html(analyzed_papers, date_str, archive_list):
             background: #fff;
             font-size: 13px;
             cursor: pointer;
+            color: var(--text-main);
         }}
         nav.tabs-nav {{
             max-width: 1000px;
@@ -276,32 +288,53 @@ def build_fixed_html(analyzed_papers, date_str, archive_list):
             font-size: 14px;
             font-weight: 500;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: background 0.2s ease, color 0.2s ease;
         }}
         .tab-btn.active {{ background: var(--accent); color: #fff; }}
         main {{ max-width: 1000px; margin: 24px auto; padding: 0 24px; }}
+        
+        /* カード全体リンクスタイル */
+        a.paper-card-link {{
+            display: block;
+            text-decoration: none;
+            color: inherit;
+            margin-bottom: 20px;
+        }}
         .paper-card {{
             background: var(--card-bg);
             border-radius: 16px;
             padding: 24px;
-            margin-bottom: 20px;
             box-shadow: 0 4px 20px rgba(0,0,0,0.03);
             border: 1px solid var(--border-color);
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
         }}
-        .paper-card:hover {{ transform: translateY(-2px); box-shadow: 0 8px 30px rgba(0,0,0,0.06); }}
+        a.paper-card-link:hover .paper-card {{
+            border-color: rgba(0, 102, 204, 0.4);
+            box-shadow: 0 6px 24px rgba(0,102,204,0.08);
+        }}
+        
         .card-header {{ display: flex; gap: 8px; margin-bottom: 12px; align-items: center; }}
         .badge {{ font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 6px; text-transform: uppercase; }}
         .highlight-badge {{ background: #fff3dc; color: #b45309; border: 1px solid #fde68a; }}
         .journal-badge {{ background: #f1f5f9; color: #475569; }}
         .title-ja {{ font-size: 18px; font-weight: 700; margin-bottom: 6px; color: #0f172a; line-height: 1.35; }}
         .title-en {{ font-size: 13px; color: var(--text-sub); margin-bottom: 14px; font-style: italic; }}
-        .meta-row {{ display: flex; gap: 16px; font-size: 12px; color: var(--text-sub); margin-bottom: 16px; flex-wrap: wrap; }}
-        .pmid-link {{ color: var(--accent); text-decoration: none; font-weight: 600; }}
+        .meta-row {{ display: flex; gap: 16px; font-size: 12px; color: var(--text-sub); margin-bottom: 16px; flex-wrap: wrap; align-items: center; }}
+        .pmid-badge {{ color: var(--accent); font-weight: 600; background: #eff6ff; padding: 2px 8px; border-radius: 4px; }}
         .summary-box {{ background: #f8fafc; border-radius: 10px; padding: 14px; font-size: 13.5px; border: 1px solid #f1f5f9; }}
-        .summary-item {{ margin-bottom: 6px; }}
+        .summary-item {{ margin-bottom: 6px; color: #334155; }}
         .summary-item:last-child {{ margin-bottom: 0; }}
-        .summary-item strong {{ color: #334155; }}
+        .summary-item strong {{ color: #0f172a; }}
+
+        footer {{
+            max-width: 1000px;
+            margin: 40px auto 0;
+            padding: 24px;
+            text-align: center;
+            border-top: 1px solid var(--border-color);
+            color: var(--text-sub);
+            font-size: 12px;
+        }}
     </style>
 </head>
 <body>
@@ -331,20 +364,24 @@ def build_fixed_html(analyzed_papers, date_str, archive_list):
         {cards_html}
     </main>
 
+    <footer>
+        <p>&copy; 2026 Pancreatobiliary Weekly Digest. All rights reserved.</p>
+    </footer>
+
     <script>
         function filterCategory(cat, btn) {{
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
 
-            const cards = document.querySelectorAll('.paper-card');
-            cards.forEach(card => {{
+            const links = document.querySelectorAll('.paper-card-link');
+            links.forEach(link => {{
                 if (cat === 'all') {{
-                    card.style.display = 'block';
+                    link.style.display = 'block';
                 }} else {{
-                    if (card.classList.contains(cat)) {{
-                        card.style.display = 'block';
+                    if (link.classList.contains(cat)) {{
+                        link.style.display = 'block';
                     }} else {{
-                        card.style.display = 'none';
+                        link.style.display = 'none';
                     }}
                 }}
             }});
