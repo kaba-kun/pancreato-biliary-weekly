@@ -4,10 +4,10 @@ on:
   schedule:
     # 毎週日曜日 21:00 JST (12:00 UTC) に自動実行
     - cron: '0 12 * * 0'
-  workflow_dispatch: # 手動実行ボタンを有効化
+  workflow_dispatch: # 手動実行ボタン
 
 permissions:
-  contents: write # リポジトリへの書き込み権限
+  contents: write
 
 jobs:
   build-and-deploy:
@@ -26,14 +26,14 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: 論文収集・HTML生成の実行
+      - name: 論文収集・HTML生成・アーカイブの実行
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: python main.py
 
-      - name: 生成されたWebページのGitHubへのコミット＆Push
+      - name: 生成されたWebページおよび過去アーカイブのGitHubコミット＆Push
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action Bot"
-          git add docs/index.html
-          git diff --quiet && git diff --staged --quiet || (git commit -m "Update weekly highlight" && git push)
+          git add docs/
+          git diff --quiet && git diff --staged --quiet || (git commit -m "Update weekly digest & archives [skip ci]" && git push)
