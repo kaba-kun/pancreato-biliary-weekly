@@ -38,7 +38,6 @@ TARGET_JOURNALS = [
 def fetch_pubmed_papers():
     base_url = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils"
     
-    # 胆膵関連キーワード ＋ 臨床研究限定フィルター ＋ 直近7日間
     term_keywords = '("pancreatitis"[Title/Abstract] OR "pancreatic"[Title/Abstract] OR "biliary"[Title/Abstract] OR "ERCP"[Title/Abstract] OR "EUS"[Title/Abstract] OR "cholangiocarcinoma"[Title/Abstract] OR "cholangitis"[Title/Abstract] OR "choledocholithiasis"[Title/Abstract] OR "gallstone"[Title/Abstract] OR "IPMN"[Title/Abstract] OR "PSC"[Title/Abstract] OR "IgG4"[Title/Abstract] OR "neuroendocrine"[Title/Abstract] OR "pancreas transplantation"[Title/Abstract] OR "liver transplantation"[Title/Abstract])'
     type_filter = 'AND ("Clinical Trial"[PT] OR "Observational Study"[PT] OR "Comparative Study"[PT] OR "Multicenter Study"[PT] OR "Validation Study"[PT] OR "Journal Article"[PT]) NOT ("Review"[PT] OR "Editorial"[PT] OR "Letter"[PT] OR "Comment"[PT] OR "Case Reports"[PT])'
     date_filter = 'AND ("last 7 days"[PDat])'
@@ -64,7 +63,6 @@ def fetch_pubmed_papers():
         journal_elem = article.find(".//Journal/Title")
         journal = journal_elem.text if journal_elem is not None else ""
         
-        # 簡易雑誌名マッチング (対象リストに含まれているか確認)
         is_target_journal = any(
             target.lower() in journal.lower() or journal.lower() in target.lower() 
             for target in TARGET_JOURNALS
@@ -75,7 +73,6 @@ def fetch_pubmed_papers():
         pmid = article.find(".//PMID").text if article.find(".//PMID") is not None else ""
         title = article.find(".//ArticleTitle").text if article.find(".//ArticleTitle") is not None else ""
         
-        # 筆頭著者
         author_list = article.findall(".//AuthorList/Author")
         authors_formatted = "Unknown"
         if author_list:
@@ -85,7 +82,6 @@ def fetch_pubmed_papers():
             name_str = f"{last_name} {initials}".strip()
             authors_formatted = f"{name_str} et al." if len(author_list) > 1 else name_str
 
-        # 出版日
         pub_date_elem = article.find(".//Journal/JournalIssue/PubDate")
         pub_date_str = ""
         if pub_date_elem is not None:
@@ -97,7 +93,6 @@ def fetch_pubmed_papers():
         abstract_texts = article.findall(".//AbstractText")
         abstract = " ".join([elem.text for elem in abstract_texts if elem.text])
         
-        # 動物実験・基礎研究キーワードの簡易排斥
         lower_abstract = abstract.lower()
         if "mouse model" in lower_abstract or "mice" in lower_abstract or "rat model" in lower_abstract or "in vitro" in lower_abstract:
             continue
@@ -114,108 +109,269 @@ def fetch_pubmed_papers():
     return papers
 
 # ----------------------------------------------------
-# 2. Gemini APIでApple風UI ＋ カテゴリ・アーカイブ対応HTML生成
+# 2. Gemini APIに構造化JSONデータのみを生成させる
 # ----------------------------------------------------
-def generate_digest_html(papers, date_str, archive_list):
+def analyze_papers_with_gemini(papers):
     client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
 
-    # アーカイブメニューのHTMLドロップダウン生成
-    archive_options = '<option value="../index.html">最新号 (最新)</option>'
-    for arch in archive_list:
-        archive_options += f'<option value="{arch["filename"]}">{arch["date"]}</option>'
-
     prompt = f"""
-あなたは世界最高峰の胆膵内科ならびに胆膵内視鏡の臨床医かつ臨床研究者です。胆石や胆嚢炎から膵炎，膵癌などあらゆる胆膵内科領域のスペシャリストです。
-またAppleやVercelのようなプロダクトデザインを手がけるUIデザイナーです。
-以下の{len(papers)}件の最新臨床研究論文（オリジナルアーティクル）から、読者を惹きつける洗練されたウィークリーダッシュボードHTMLを作成してください。
+あなたは世界最高峰の胆膵内科ならびに胆膵内視鏡の臨床医かつ臨床研究者です。
+以下の{len(papers)}件の論文データから、臨床的インパクトが高い重要な論文を厳選し、指定のJSONフォーマットのみで出力してください。
 
-対象期間: {date_str}
 論文データ:
 {papers}
 
-【デザイン・UIコンセプト（Apple Inspired Minimal UI）】
-- **サイトタイトル**: 「今週の胆膵疾患研究ハイライト」（※ここにお好きなタイトルを指定します）
-- **サブタイトル**: 「Pancreatobiliary Weekly Digest ({date_str})」
-- **フォント**: System UI (-apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", sans-serif)
-- **カラー**: 
-  - 背景: #f5f5f7 (Apple製品ページ調の繊細なグレー)
-  - ヘッダー・テキスト: #1d1d1f (ディープブラック)
-  - アクセント: #0066cc (Apple Blue)
-  - カード: #ffffff (純白、border-radius: 16px、box-shadow: 0 4px 20px rgba(0,0,0,0.04))
-- **インタラクティブ・タブバー (重要)**:
-  ページ上部にガラス感のある固定タブバーを配置し、JavaScriptでカードの表示/非表示を瞬時に切り替えられるようにしてください。
-  タブ項目: 
-    * すべて (`data-category="all"`)
-    * ⭐ TOPハイライト (`data-category="highlight"`)
-    * 1. 胆膵内視鏡 (`data-category="endo"`)
-    * 2. 膵良性疾患 (`data-category="pancreas-benign"`)
-    * 3. 胆道良性疾患 (`data-category="biliary-benign"`)
-    * 4. 膵・胆道悪性疾患 (`data-category="cancer"`)
-    * 5. 肝胆膵移植外科 (`data-category="transplant"`)
+【JSON出力フォーマット (厳守)】
+以下のキーを持つJSON配列 (Array) の形式で出力してください：
+[
+  {{
+    "pmid": "PMID番号",
+    "title_ja": "魅力的で正確な日本語タイトル",
+    "title_en": "英語原題",
+    "journal": "雑誌名",
+    "author": "著者名",
+    "pub_date": "出版日",
+    "category": "カテゴリID (endo, pancreas-benign, biliary-benign, cancer, transplant のいずれか)",
+    "is_highlight": trueまたはfalse (最重要3~4報のみtrue),
+    "study_design": "研究デザイン・対象症例数 (例: 多施設RCT / 320例)",
+    "results": "主要結果 (主要エンドポイントや数値)",
+    "takeaway": "臨床的要点 (日常診療への影響)"
+  }}
+]
 
-【トップハイライト選定基準】
-- 臨床的インパクトが極めて高い臨床試験（RCT、大規模多施設コホート、SNS/学会で話題を呼ぶイノベーティブな研究）3〜4報に `data-category` へ `highlight` と各領域カテゴリの両方を付与し、上部にハイライトバッジを表示してください。
+【カテゴリID定義】
+- endo: 胆膵内視鏡
+- pancreas-benign: 膵良性疾患 (急性・慢性・自己免疫性膵炎、IPMN等)
+- biliary-benign: 胆道良性疾患 (胆管炎、PSC、総胆管結石、IgG4-SC)
+- cancer: 膵・胆道悪性疾患 (膵癌、胆管がん、PNET等)
+- transplant: 肝胆膵移植外科
 
-【各論文カードの記載構造】
-1. **カードのHTML属性**: `<article class="paper-card" data-category="[カテゴリID]">`
-2. **領域・ジャーナルタグ**: 掲載誌名 ＋ 推定Impact Factor (例: *Gastroenterology* [IF ~29.7])
-3. **タイトル**: 魅力的で正確な【日本語タイトル】（18px / Bold）、下に英語原題
-4. **メタ情報**: 著者名 (Smith J et al.) | 出版日 | PMIDバッジ (PubMedリンク)
-5. **詳細臨床要約 (構造化形式)**:
-   - **デザイン・対象**: (例: 多施設ランダム化比較試験 [RCT] / 320例)
-   - **主要結果**: (主要エンドポイントの数値や有意差、効果を明瞭に)
-   - **臨床的要点**: (明日の診療やガイドラインに与えるインパクト)
-
-【ヘッダーアーカイブドロップダウン】
-ヘッダー右上に以下のドロップダウンHTMLを組み込んでください：
-`<select onchange="location.href=this.value" class="archive-select">{archive_options}</select>`
-
-【JavaScript埋め込み】
-タブをクリックした際に、対応する `data-category` を持つ `.paper-card` のみを表示（"all" の場合は全表示）するシンプルなJSコードを HTML内の `<script>` に含めてください。
-
-※ `<!DOCTYPE html>` から始まる完全なHTMLコードのみを出力してください。解説テキストや ```html のようなマークダウンは含めないでください。
+※ 余計な解説テキストやマークダウンは入れず、純粋なJSONテキストのみを出力してください。
 """
 
     model_name = 'gemini-3.8-flash'
     for attempt in range(3):
         try:
-            print(f"モデル [{model_name}] で生成を実行中... (試行 {attempt + 1}/3)")
             response = client.models.generate_content(
                 model=model_name,
                 contents=prompt
             )
-            html_text = response.text.strip()
-            if html_text.startswith("```html"):
-                html_text = html_text[7:]
-            if html_text.endswith("```"):
-                html_text = html_text[:-3]
-            return html_text.strip()
+            raw_text = response.text.strip()
+            if raw_text.startswith("```json"):
+                raw_text = raw_text[7:]
+            if raw_text.startswith("```"):
+                raw_text = raw_text[3:]
+            if raw_text.endswith("```"):
+                raw_text = raw_text[:-3]
+            return json.loads(raw_text.strip())
         except Exception as e:
-            print(f"通信エラーが発生しました: {e}")
+            print(f"API呼び出し/解析エラー: {e}")
             time.sleep(5)
 
-    raise RuntimeError("AIモデルの呼び出しに失敗しました。")
+    raise RuntimeError("AIによる解析に失敗しました。")
 
 # ----------------------------------------------------
-# 3. アーカイブ管理とファイル保存
+# 3. 完全固定のApple風HTMLテンプレートをレンダリングする
+# ----------------------------------------------------
+def build_fixed_html(analyzed_papers, date_str, archive_list):
+    archive_options = '<option value="../index.html">最新号 (最新)</option>'
+    for arch in archive_list:
+        archive_options += f'<option value="{arch["filename"]}">{arch["date"]}</option>'
+
+    cards_html = ""
+    for p in analyzed_papers:
+        highlight_badge = '<span class="badge highlight-badge">⭐ TOP HIGHLIGHT</span>' if p.get("is_highlight") else ''
+        category_class = f'{p.get("category", "endo")}'
+        if p.get("is_highlight"):
+            category_class += " highlight"
+
+        cards_html += f"""
+        <article class="paper-card {category_class}" data-category="{category_class}">
+            <div class="card-header">
+                {highlight_badge}
+                <span class="badge journal-badge">{p.get("journal", "")}</span>
+            </div>
+            <h2 class="title-ja">{p.get("title_ja", "")}</h2>
+            <p class="title-en">{p.get("title_en", "")}</p>
+            <div class="meta-row">
+                <span>👤 {p.get("author", "")}</span>
+                <span>📅 {p.get("pub_date", "")}</span>
+                <a href="[https://pubmed.ncbi.nlm.nih.gov/](https://pubmed.ncbi.nlm.nih.gov/){p.get('pmid', '')}/" target="_blank" class="pmid-link">PMID: {p.get("pmid", "")} ↗</a>
+            </div>
+            <div class="summary-box">
+                <div class="summary-item"><strong>研究デザイン:</strong> {p.get("study_design", "")}</div>
+                <div class="summary-item"><strong>主要結果:</strong> {p.get("results", "")}</div>
+                <div class="summary-item"><strong>臨床的要点:</strong> {p.get("takeaway", "")}</div>
+            </div>
+        </article>
+        """
+
+    full_html = f"""<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>今週の胆膵疾患研究ハイライト</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22[http://www.w3.org/2000/svg%22](http://www.w3.org/2000/svg%22) viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔬</text></svg>">
+    <style>
+        :root {{
+            --bg-color: #f5f5f7;
+            --text-main: #1d1d1f;
+            --text-sub: #86868b;
+            --card-bg: #ffffff;
+            --accent: #0066cc;
+            --border-color: rgba(0, 0, 0, 0.08);
+        }}
+        * {{ box-sizing: border-box; margin: 0; padding: 0; }}
+        body {{
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Inter", sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+            padding-bottom: 80px;
+        }}
+        header {{
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 1px solid var(--border-color);
+            padding: 16px 24px;
+        }}
+        .header-container {{
+            max-width: 1000px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }}
+        .site-title {{ font-size: 20px; font-weight: 700; letter-spacing: -0.02em; }}
+        .sub-title {{ font-size: 13px; color: var(--text-sub); margin-top: 2px; }}
+        .archive-select {{
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background: #fff;
+            font-size: 13px;
+            cursor: pointer;
+        }}
+        nav.tabs-nav {{
+            max-width: 1000px;
+            margin: 24px auto 0;
+            padding: 0 24px;
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            white-space: nowrap;
+        }}
+        .tab-btn {{
+            padding: 8px 16px;
+            border-radius: 20px;
+            border: none;
+            background: #e5e5ea;
+            color: var(--text-main);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }}
+        .tab-btn.active {{ background: var(--accent); color: #fff; }}
+        main {{ max-width: 1000px; margin: 24px auto; padding: 0 24px; }}
+        .paper-card {{
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+            border: 1px solid var(--border-color);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }}
+        .paper-card:hover {{ transform: translateY(-2px); box-shadow: 0 8px 30px rgba(0,0,0,0.06); }}
+        .card-header {{ display: flex; gap: 8px; margin-bottom: 12px; align-items: center; }}
+        .badge {{ font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 6px; text-transform: uppercase; }}
+        .highlight-badge {{ background: #fff3dc; color: #b45309; border: 1px solid #fde68a; }}
+        .journal-badge {{ background: #f1f5f9; color: #475569; }}
+        .title-ja {{ font-size: 18px; font-weight: 700; margin-bottom: 6px; color: #0f172a; line-height: 1.35; }}
+        .title-en {{ font-size: 13px; color: var(--text-sub); margin-bottom: 14px; font-style: italic; }}
+        .meta-row {{ display: flex; gap: 16px; font-size: 12px; color: var(--text-sub); margin-bottom: 16px; flex-wrap: wrap; }}
+        .pmid-link {{ color: var(--accent); text-decoration: none; font-weight: 600; }}
+        .summary-box {{ background: #f8fafc; border-radius: 10px; padding: 14px; font-size: 13.5px; border: 1px solid #f1f5f9; }}
+        .summary-item {{ margin-bottom: 6px; }}
+        .summary-item:last-child {{ margin-bottom: 0; }}
+        .summary-item strong {{ color: #334155; }}
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-container">
+            <div>
+                <div class="site-title">今週の胆膵疾患研究ハイライト</div>
+                <div class="sub-title">Pancreatobiliary Weekly Digest ({date_str})</div>
+            </div>
+            <select onchange="location.href=this.value" class="archive-select">
+                {archive_options}
+            </select>
+        </div>
+    </header>
+
+    <nav class="tabs-nav">
+        <button class="tab-btn active" onclick="filterCategory('all', this)">すべて</button>
+        <button class="tab-btn" onclick="filterCategory('highlight', this)">⭐ TOPハイライト</button>
+        <button class="tab-btn" onclick="filterCategory('endo', this)">1. 胆膵内視鏡</button>
+        <button class="tab-btn" onclick="filterCategory('pancreas-benign', this)">2. 膵良性疾患</button>
+        <button class="tab-btn" onclick="filterCategory('biliary-benign', this)">3. 胆道良性疾患</button>
+        <button class="tab-btn" onclick="filterCategory('cancer', this)">4. 膵・胆道悪性疾患</button>
+        <button class="tab-btn" onclick="filterCategory('transplant', this)">5. 肝胆膵移植外科</button>
+    </nav>
+
+    <main id="cards-container">
+        {cards_html}
+    </main>
+
+    <script>
+        function filterCategory(cat, btn) {{
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            const cards = document.querySelectorAll('.paper-card');
+            cards.forEach(card => {{
+                if (cat === 'all') {{
+                    card.style.display = 'block';
+                }} else {{
+                    if (card.classList.contains(cat)) {{
+                        card.style.display = 'block';
+                    }} else {{
+                        card.style.display = 'none';
+                    }}
+                }}
+            }});
+        }}
+    </script>
+</body>
+</html>"""
+    return full_html
+
+# ----------------------------------------------------
+# 4. アーカイブ管理とファイル保存
 # ----------------------------------------------------
 def save_and_manage_archives(html_content, date_file_str):
     os.makedirs("docs/archives", exist_ok=True)
     
-    # 1. 週ごとの個別アーカイブファイルとして保存
     archive_filename = f"weekly-{date_file_str}.html"
     archive_path = os.path.join("docs/archives", archive_filename)
     with open(archive_path, "w", encoding="utf-8") as f:
         f.write(html_content)
         
-    # 2. トップページ (docs/index.html) としても最新版を保存
     with open("docs/index.html", "w", encoding="utf-8") as f:
         f.write(html_content)
 
 def get_existing_archives():
     archive_files = sorted(glob.glob("docs/archives/weekly-*.html"), reverse=True)
     archives = []
-    for file_path in archive_files[:52]: # 過去1年分(52週)まで保持
+    for file_path in archive_files[:52]:
         filename = os.path.basename(file_path)
         date_part = filename.replace("weekly-", "").replace(".html", "")
         archives.append({
@@ -234,16 +390,18 @@ if __name__ == "__main__":
     
     print(f"[{date_display_str}] 厳選54誌からの臨床研究論文アーカイブの抽出を開始します...")
     
-    # 既存の過去アーカイブ一覧を取得
     existing_archives = get_existing_archives()
-    
     papers = fetch_pubmed_papers()
+    
     if papers:
-        print(f"対象ジャーナルより {len(papers)} 件の厳選臨床論文を取得しました。Apple風UIで生成中...")
-        html_content = generate_digest_html(papers, date_display_str, existing_archives)
+        print(f"対象ジャーナルより {len(papers)} 件の厳選臨床論文を取得しました。Geminiで解析中...")
+        analyzed_papers = analyze_papers_with_gemini(papers)
+        
+        print("固定テンプレートでHTMLを生成中...")
+        html_content = build_fixed_html(analyzed_papers, date_display_str, existing_archives)
         
         print("最新ページ (docs/index.html) およびアーカイブを更新中...")
         save_and_manage_archives(html_content, date_file_str)
-        print("ウィークリーアップデートが正常に完了しました！")
+        print("ウィークリーアップデートが完全成功しました！")
     else:
         print("今週の対象論文が見つかりませんでした。")
