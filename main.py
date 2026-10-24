@@ -210,7 +210,7 @@ def build_fixed_html(analyzed_papers, original_papers, date_str, archive_list, i
         orig_data = id_to_orig.get(paper_id, {})
         
         pmid = orig_data.get("pmid", "")
-        pubmed_url = f"[https://pubmed.ncbi.nlm.nih.gov/](https://pubmed.ncbi.nlm.nih.gov/){pmid}/" if pmid else "#"
+        pubmed_url = f"https://pubmed.ncbi.nlm.nih.gov/{pmid}/" if pmid else "#"
         
         journal = orig_data.get("journal", "")
         author = orig_data.get("author", "")
