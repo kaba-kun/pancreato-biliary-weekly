@@ -110,7 +110,7 @@ def fetch_pubmed_papers():
     return papers
 
 # ----------------------------------------------------
-# 2. Gemini APIで構造化JSONデータを生成 (Flashモデル単体 & 段階的リトライ)
+# 2. Gemini APIで構造化JSONデータを生成
 # ----------------------------------------------------
 def analyze_papers_with_gemini(papers):
     client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
@@ -126,7 +126,7 @@ def analyze_papers_with_gemini(papers):
 以下のキーを持つJSON配列 (Array) の形式で出力してください：
 [
   {{
-    "pmid": "PubMedのPMID番号 (数字のみ)",
+    "pmid": "元のデータに含まれるPMID数字 (例: 42913703。記号やURL、[]等は一切含めず数字のみ出力すること)",
     "title_ja": "魅力的で正確な日本語タイトル",
     "title_en": "英語原題",
     "journal": "雑誌名",
@@ -152,7 +152,6 @@ def analyze_papers_with_gemini(papers):
 
     model_name = 'gemini-3.8-flash'
     
-    # 最大5回までリトライ (待機時間を 10s, 20s, 30s, 40s と伸ばして混雑を回避)
     for attempt in range(5):
         try:
             print(f"モデル [{model_name}] で解析を実行中... (試行 {attempt + 1}/5)")
@@ -170,10 +169,10 @@ def analyze_papers_with_gemini(papers):
             return json.loads(raw_text.strip())
         except Exception as e:
             wait_time = (attempt + 1) * 10
-            print(f"一時的な混雑または通信エラーが発生しました ({e})。{wait_time}秒後に再試行します...")
+            print(f"通信エラー発生 ({e})。{wait_time}秒後に再試行します...")
             time.sleep(wait_time)
 
-    raise RuntimeError("AIモデルが一時的な混雑により応答しませんでした。時間をおいて再試行してください。")
+    raise RuntimeError("AIモデルの呼び出しに失敗しました。")
 
 # ----------------------------------------------------
 # 3. 完全固定のApple風HTMLテンプレートをレンダリングする
@@ -187,14 +186,18 @@ def build_fixed_html(analyzed_papers, original_papers, date_str, archive_list):
     for p in analyzed_papers:
         raw_pmid_str = str(p.get("pmid", ""))
         
-        match = re.search(r'\b\d{7,9}\b', raw_pmid_str)
-        if match:
-            clean_pmid = match.group(0)
+        # どんな文字列が紛れ込んでも、7〜9桁の連続した「数字だけ」を抽出
+        pmid_matches = re.findall(r'\d{7,9}', raw_pmid_str)
+        if pmid_matches:
+            clean_pmid = pmid_matches[0]
         else:
-            digits = re.sub(r'\D', '', raw_pmid_str)
-            clean_pmid = digits[:8] if len(digits) >= 8 else digits
+            clean_pmid = re.sub(r'\D', '', raw_pmid_str)
 
-        pubmed_url = f"[https://pubmed.ncbi.nlm.nih.gov/](https://pubmed.ncbi.nlm.nih.gov/){clean_pmid}/" if clean_pmid else "#"
+        # 必ず絶対URL ([https://pubmed.ncbi.nlm.nih.gov/数字/](https://pubmed.ncbi.nlm.nih.gov/数字/)) として組み立てる
+        if clean_pmid:
+            pubmed_url = f"[https://pubmed.ncbi.nlm.nih.gov/](https://pubmed.ncbi.nlm.nih.gov/){clean_pmid}/"
+        else:
+            pubmed_url = "#"
         
         highlight_badge = '<span class="badge highlight-badge">⭐ TOP HIGHLIGHT</span>' if p.get("is_highlight") else ''
         category_class = f'{p.get("category", "endo")}'
