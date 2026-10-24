@@ -1,4 +1,5 @@
 import os
+import re
 import time
 import json
 import glob
@@ -125,7 +126,7 @@ def analyze_papers_with_gemini(papers):
 以下のキーを持つJSON配列 (Array) の形式で出力してください：
 [
   {{
-    "pmid": "PMID番号",
+    "pmid": "PMIDの純粋な数字のみ (例: 42913703。URLや記号は絶対に入れないこと)",
     "title_ja": "魅力的で正確な日本語タイトル",
     "title_en": "英語原題",
     "journal": "雑誌名",
@@ -180,8 +181,9 @@ def build_fixed_html(analyzed_papers, date_str, archive_list):
 
     cards_html = ""
     for p in analyzed_papers:
-        pmid = p.get("pmid", "")
-        pubmed_url = f"[https://pubmed.ncbi.nlm.nih.gov/](https://pubmed.ncbi.nlm.nih.gov/){pmid}/" if pmid else "#"
+        raw_pmid = str(p.get("pmid", ""))
+        clean_pmid = re.sub(r'\D', '', raw_pmid)
+        pubmed_url = f"[https://pubmed.ncbi.nlm.nih.gov/](https://pubmed.ncbi.nlm.nih.gov/){clean_pmid}/" if clean_pmid else "#"
         
         highlight_badge = '<span class="badge highlight-badge">⭐ TOP HIGHLIGHT</span>' if p.get("is_highlight") else ''
         category_class = f'{p.get("category", "endo")}'
@@ -189,7 +191,7 @@ def build_fixed_html(analyzed_papers, date_str, archive_list):
             category_class += " highlight"
 
         cards_html += f"""
-        <a href="{pubmed_url}" target="_blank" class="paper-card-link {category_class}">
+        <a href="{pubmed_url}" target="_blank" rel="noopener noreferrer" class="paper-card-link {category_class}">
             <article class="paper-card">
                 <div class="card-header">
                     {highlight_badge}
@@ -200,7 +202,7 @@ def build_fixed_html(analyzed_papers, date_str, archive_list):
                 <div class="meta-row">
                     <span>👤 {p.get("author", "")}</span>
                     <span>📅 {p.get("pub_date", "")}</span>
-                    <span class="pmid-badge">PMID: {pmid} ↗</span>
+                    <span class="pmid-badge">PMID: {clean_pmid} ↗</span>
                 </div>
                 <div class="summary-box">
                     <div class="summary-item"><strong>研究デザイン:</strong> {p.get("study_design", "")}</div>
@@ -216,14 +218,12 @@ def build_fixed_html(analyzed_papers, date_str, archive_list):
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- 検索エンジン用の説明文 -->
-    <meta name="description" content="直近1週間に公表された胆膵疾患・胆膵内視鏡領域の主要臨床論文（Original Article）の要約ダッシュボード。">
-    <!-- SNS（X/Facebook等）でシェアされた時の表示設定 (OGP) -->
-    <meta property="og:title" content="今週の胆膵疾患研究ハイライト | Pancreatobiliary Weekly Digest">
+    <title>今週の胆膵疾患研究ハイライト | Pancreatobiliary Weekly Digest</title>
+    <meta name="description" content="主要54誌から厳選した胆膵疾患・胆膵内視鏡領域の最新臨床研究（Original Article）ウィークリーダッシュボード。">
+    <meta property="og:title" content="今週の胆膵疾患研究ハイライト">
     <meta property="og:description" content="主要54誌から厳選した胆膵領域の最新臨床研究・一文要約サマリー。">
     <meta property="og:type" content="website">
-    <title>今週の胆膵疾患研究ハイライト</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22[http://www.w3.org/2000/svg%22](http://www.w3.org/2000/svg%22) viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔬</text></svg>">
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='[http://www.w3.org/2000/svg](http://www.w3.org/2000/svg)' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🔬%3C/text%3E%3C/svg%3E">
     <style>
         :root {{
             --bg-color: #f5f5f7;
@@ -242,6 +242,8 @@ def build_fixed_html(analyzed_papers, date_str, archive_list):
             -webkit-font-smoothing: antialiased;
             padding-bottom: 40px;
         }}
+        
+        /* 固定ヘッダー（タイトル＋タブバー一体型） */
         header {{
             background: rgba(255, 255, 255, 0.85);
             backdrop-filter: blur(20px);
@@ -250,11 +252,12 @@ def build_fixed_html(analyzed_papers, date_str, archive_list):
             top: 0;
             z-index: 100;
             border-bottom: 1px solid var(--border-color);
-            padding: 16px 24px;
+            padding: 16px 0 12px;
         }}
         .header-container {{
             max-width: 1000px;
             margin: 0 auto;
+            padding: 0 24px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -270,14 +273,21 @@ def build_fixed_html(analyzed_papers, date_str, archive_list):
             cursor: pointer;
             color: var(--text-main);
         }}
+        
+        /* 固定ナビゲーションタブ */
         nav.tabs-nav {{
             max-width: 1000px;
-            margin: 24px auto 0;
+            margin: 12px auto 0;
             padding: 0 24px;
             display: flex;
             gap: 8px;
             overflow-x: auto;
             white-space: nowrap;
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }}
+        nav.tabs-nav::-webkit-scrollbar {{
+            display: none;
         }}
         .tab-btn {{
             padding: 8px 16px;
@@ -291,9 +301,9 @@ def build_fixed_html(analyzed_papers, date_str, archive_list):
             transition: background 0.2s ease, color 0.2s ease;
         }}
         .tab-btn.active {{ background: var(--accent); color: #fff; }}
+        
         main {{ max-width: 1000px; margin: 24px auto; padding: 0 24px; }}
         
-        /* カード全体リンクスタイル */
         a.paper-card-link {{
             display: block;
             text-decoration: none;
@@ -348,17 +358,16 @@ def build_fixed_html(analyzed_papers, date_str, archive_list):
                 {archive_options}
             </select>
         </div>
+        <nav class="tabs-nav">
+            <button class="tab-btn active" onclick="filterCategory('all', this)">すべて</button>
+            <button class="tab-btn" onclick="filterCategory('highlight', this)">⭐ TOPハイライト</button>
+            <button class="tab-btn" onclick="filterCategory('endo', this)">1. 胆膵内視鏡</button>
+            <button class="tab-btn" onclick="filterCategory('pancreas-benign', this)">2. 膵良性疾患</button>
+            <button class="tab-btn" onclick="filterCategory('biliary-benign', this)">3. 胆道良性疾患</button>
+            <button class="tab-btn" onclick="filterCategory('cancer', this)">4. 膵・胆道悪性疾患</button>
+            <button class="tab-btn" onclick="filterCategory('transplant', this)">5. 肝胆膵移植外科</button>
+        </nav>
     </header>
-
-    <nav class="tabs-nav">
-        <button class="tab-btn active" onclick="filterCategory('all', this)">すべて</button>
-        <button class="tab-btn" onclick="filterCategory('highlight', this)">⭐ TOPハイライト</button>
-        <button class="tab-btn" onclick="filterCategory('endo', this)">1. 胆膵内視鏡</button>
-        <button class="tab-btn" onclick="filterCategory('pancreas-benign', this)">2. 膵良性疾患</button>
-        <button class="tab-btn" onclick="filterCategory('biliary-benign', this)">3. 胆道良性疾患</button>
-        <button class="tab-btn" onclick="filterCategory('cancer', this)">4. 膵・胆道悪性疾患</button>
-        <button class="tab-btn" onclick="filterCategory('transplant', this)">5. 肝胆膵移植外科</button>
-    </nav>
 
     <main id="cards-container">
         {cards_html}
