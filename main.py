@@ -1,5 +1,4 @@
 import os
-import re
 import time
 import json
 import glob
@@ -39,7 +38,9 @@ TARGET_JOURNALS = [
 def fetch_pubmed_papers():
     base_url = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils"
     
-    term_keywords = '("pancreatitis"[Title/Abstract] OR "pancreatic"[Title/Abstract] OR "biliary"[Title/Abstract] OR "ERCP"[Title/Abstract] OR "EUS"[Title/Abstract] OR "cholangiocarcinoma"[Title/Abstract] OR "cholangitis"[Title/Abstract] OR "choledocholithiasis"[Title/Abstract] OR "gallstone"[Title/Abstract] OR "IPMN"[Title/Abstract] OR "PSC"[Title/Abstract] OR "IgG4"[Title/Abstract] OR "neuroendocrine"[Title/Abstract] OR "pancreas transplantation"[Title/Abstract] OR "liver transplantation"[Title/Abstract])'
+    # 略語＋正式名称＋全主要疾患・処置（EST/EPBD/FNA/FNB/EUS-TA/乳頭切除/papillary表現網羅）
+    term_keywords = '("pancreatitis"[Title/Abstract] OR "pancreatic cancer"[Title/Abstract] OR "pancreatic ductal adenocarcinoma"[Title/Abstract] OR "PDAC"[Title/Abstract] OR "pancreatic carcinoma"[Title/Abstract] OR "pancreatic neuroendocrine tumor"[Title/Abstract] OR "PanNET"[Title/Abstract] OR "IPMN"[Title/Abstract] OR "intraductal papillary mucinous neoplasm"[Title/Abstract] OR "MCN"[Title/Abstract] OR "mucinous cystic neoplasm"[Title/Abstract] OR "SCN"[Title/Abstract] OR "serous cystic neoplasm"[Title/Abstract] OR "serous cystadenoma"[Title/Abstract] OR "pancreatic cyst"[Title/Abstract] OR "pancreatic cystic"[Title/Abstract] OR "autoimmune pancreatitis"[Title/Abstract] OR "AIP"[Title/Abstract] OR "pancreatic fistula"[Title/Abstract] OR "POPF"[Title/Abstract] OR "postoperative pancreatic fistula"[Title/Abstract] OR "pancreatic duct stricture"[Title/Abstract] OR "biliary"[Title/Abstract] OR "cholangiocarcinoma"[Title/Abstract] OR "biliary tract cancer"[Title/Abstract] OR "gallbladder cancer"[Title/Abstract] OR "gallbladder carcinoma"[Title/Abstract] OR "gallbladder disease"[Title/Abstract] OR "cholangitis"[Title/Abstract] OR "cholecystitis"[Title/Abstract] OR "choledocholithiasis"[Title/Abstract] OR "common bile duct stones"[Title/Abstract] OR "gallstone"[Title/Abstract] OR "PSC"[Title/Abstract] OR "primary sclerosing cholangitis"[Title/Abstract] OR "IgG4-related sclerosing cholangitis"[Title/Abstract] OR "choledochal cyst"[Title/Abstract] OR "biliary stricture"[Title/Abstract] OR "ampullary carcinoma"[Title/Abstract] OR "ampullary cancer"[Title/Abstract] OR "cancer of the ampulla of vater"[Title/Abstract] OR "ampullary adenoma"[Title/Abstract] OR "papillary carcinoma"[Title/Abstract] OR "papillary adenoma"[Title/Abstract] OR "papillary tumor"[Title/Abstract] OR "papilla of vater"[Title/Abstract] OR "papillectomy"[Title/Abstract] OR "endoscopic papillectomy"[Title/Abstract] OR "ERCP"[Title/Abstract] OR "endoscopic retrograde cholangiopancreatography"[Title/Abstract] OR "EUS"[Title/Abstract] OR "endoscopic ultrasound"[Title/Abstract] OR "endoscopic ultrasonography"[Title/Abstract] OR "FNA"[Title/Abstract] OR "fine needle aspiration"[Title/Abstract] OR "fine-needle aspiration"[Title/Abstract] OR "FNB"[Title/Abstract] OR "fine needle biopsy"[Title/Abstract] OR "fine-needle biopsy"[Title/Abstract] OR "EUS-TA"[Title/Abstract] OR "tissue acquisition"[Title/Abstract] OR "EUS-guided"[Title/Abstract] OR "sphincterotomy"[Title/Abstract] OR "EST"[Title/Abstract] OR "endoscopic sphincterotomy"[Title/Abstract] OR "EPBD"[Title/Abstract] OR "endoscopic papillary balloon dilation"[Title/Abstract] OR "EPLBD"[Title/Abstract] OR "endoscopic papillary large balloon dilation"[Title/Abstract] OR "cholangioscopy"[Title/Abstract] OR "pancreatoscopy"[Title/Abstract] OR "biliary stent"[Title/Abstract] OR "biliary stenting"[Title/Abstract] OR "pancreatic stent"[Title/Abstract] OR "pancreatic stenting"[Title/Abstract] OR "biliary drainage"[Title/Abstract] OR "pancreatic drainage"[Title/Abstract])'
+    
     type_filter = 'AND ("Clinical Trial"[PT] OR "Observational Study"[PT] OR "Comparative Study"[PT] OR "Multicenter Study"[PT] OR "Validation Study"[PT] OR "Journal Article"[PT]) NOT ("Review"[PT] OR "Editorial"[PT] OR "Letter"[PT] OR "Comment"[PT] OR "Case Reports"[PT])'
     date_filter = 'AND ("last 7 days"[PDat])'
     
@@ -99,6 +100,7 @@ def fetch_pubmed_papers():
             continue
 
         papers.append({
+            "id": len(papers),
             "pmid": pmid,
             "title": title,
             "journal": journal,
@@ -110,28 +112,31 @@ def fetch_pubmed_papers():
     return papers
 
 # ----------------------------------------------------
-# 2. Gemini APIで要約・分類JSONを生成
+# 2. Gemini APIで論文の解析・日本語要約・カテゴリ分類を行う
 # ----------------------------------------------------
 def analyze_papers_with_gemini(papers):
     client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
 
+    simplified_papers = [
+        {"id": p["id"], "title": p["title"], "journal": p["journal"], "abstract": p["abstract"]}
+        for p in papers
+    ]
+
     prompt = f"""
 あなたは世界最高峰の胆膵内科ならびに胆膵内視鏡の臨床医かつ臨床研究者です。
-以下の{len(papers)}件の論文データから、臨床的インパクトが高い重要な論文を厳選し、指定のJSONフォーマットのみで出力してください。
+以下の論文データリストから、各論文の日本語タイトル、カテゴリ分類、研究デザイン、主要結果、臨床的要点を抽出し、指定のJSONフォーマットで出力してください。
 
 論文データ:
-{papers}
+{simplified_papers}
 
 【JSON出力フォーマット (厳守)】
 以下のキーを持つJSON配列 (Array) の形式で出力してください：
 [
   {{
+    "id": 論文データにある数値ID (0, 1, 2...),
     "title_ja": "魅力的で正確な日本語タイトル",
     "title_en": "英語原題",
-    "journal": "雑誌名",
-    "author": "著者名",
-    "pub_date": "出版日",
-    "category": "カテゴリID (endo, pancreas-benign, biliary-benign, cancer, transplant のいずれか)",
+    "category": "カテゴリID (endo, pancreas-benign, biliary-benign, cancer のいずれか)",
     "is_highlight": trueまたはfalse (最重要3~4報のみtrue),
     "study_design": "研究デザイン・対象症例数 (例: 多施設RCT / 320例)",
     "results": "主要結果 (主要エンドポイントや数値)",
@@ -140,11 +145,10 @@ def analyze_papers_with_gemini(papers):
 ]
 
 【カテゴリID定義】
-- endo: 胆膵内視鏡
-- pancreas-benign: 膵良性疾患 (急性・慢性・自己免疫性膵炎、IPMN等)
-- biliary-benign: 胆道良性疾患 (胆管炎、PSC、総胆管結石、IgG4-SC)
-- cancer: 膵・胆道悪性疾患 (膵癌、胆管がん、PNET等)
-- transplant: 肝胆膵移植外科
+- endo: 胆膵内視鏡 (ERCP, EUS, FNA/FNB, EUS-TA, EST, EPBD, 乳頭切除, ステント, ドレナージ等)
+- pancreas-benign: 膵良性疾患 (急性・慢性・自己免疫性膵炎、IPMN, MCN, SCN等嚢胞性腫瘤、膵液瘻等)
+- biliary-benign: 胆道良性疾患 (胆管炎、胆嚢炎、PSC、総胆管結石、IgG4-SC、胆道狭窄等)
+- cancer: 膵・胆道悪性疾患 (膵癌, PDAC, PanNET, 胆管がん、胆嚢癌、十二指腸乳頭部癌/腺腫等)
 
 ※ 余計な解説テキストやマークダウンは入れず、純粋なJSONテキストのみを出力してください。
 """
@@ -177,13 +181,11 @@ def analyze_papers_with_gemini(papers):
 # 3. 完全固定のApple風HTMLテンプレートをレンダリングする
 # ----------------------------------------------------
 def build_fixed_html(analyzed_papers, original_papers, date_str, archive_list, is_root=True):
-    # ドロップダウンの相対パス生成
     archive_options = []
     if is_root:
         archive_options.append('<option value="index.html" selected>最新号 (最新)</option>')
         for arch in archive_list:
-            val = f"archives/{arch['filename']}"
-            archive_options.append(f'<option value="{val}">{arch["date"]}</option>')
+            archive_options.append(f'<option value="archives/{arch["filename"]}">{arch["date"]}</option>')
     else:
         archive_options.append('<option value="../index.html">最新号 (最新)</option>')
         for arch in archive_list:
@@ -194,38 +196,44 @@ def build_fixed_html(analyzed_papers, original_papers, date_str, archive_list, i
 
     options_html = "\n".join(archive_options)
 
+    id_to_orig = {p["id"]: p for p in original_papers}
+
     cards_html = ""
-    for i, p in enumerate(analyzed_papers):
-        # 100%正確なPubMedのPMID（PubMedから得た元の数字）を直接使用
-        clean_pmid = original_papers[i]["pmid"] if i < len(original_papers) else ""
-        pubmed_url = f"[https://pubmed.ncbi.nlm.nih.gov/](https://pubmed.ncbi.nlm.nih.gov/){clean_pmid}/" if clean_pmid else "#"
+    for p in analyzed_papers:
+        paper_id = p.get("id")
+        orig_data = id_to_orig.get(paper_id, {})
         
+        pmid = orig_data.get("pmid", "")
+        pubmed_url = f"[https://pubmed.ncbi.nlm.nih.gov/](https://pubmed.ncbi.nlm.nih.gov/){pmid}/" if pmid else "#"
+        
+        journal = orig_data.get("journal", "")
+        author = orig_data.get("author", "")
+        pub_date = orig_data.get("pub_date", "")
+
         highlight_badge = '<span class="badge highlight-badge">⭐ TOP HIGHLIGHT</span>' if p.get("is_highlight") else ''
         category_class = f'{p.get("category", "endo")}'
         if p.get("is_highlight"):
             category_class += " highlight"
 
         cards_html += f"""
-        <a href="{pubmed_url}" target="_blank" rel="noopener noreferrer" class="paper-card-link {category_class}">
-            <article class="paper-card">
-                <div class="card-header">
-                    {highlight_badge}
-                    <span class="badge journal-badge">{p.get("journal", "")}</span>
-                </div>
-                <h2 class="title-ja">{p.get("title_ja", "")}</h2>
-                <p class="title-en">{p.get("title_en", "")}</p>
-                <div class="meta-row">
-                    <span>👤 {p.get("author", "")}</span>
-                    <span>📅 {p.get("pub_date", "")}</span>
-                    <span class="pmid-badge">PMID: {clean_pmid} ↗</span>
-                </div>
-                <div class="summary-box">
-                    <div class="summary-item"><strong>研究デザイン:</strong> {p.get("study_design", "")}</div>
-                    <div class="summary-item"><strong>主要結果:</strong> {p.get("results", "")}</div>
-                    <div class="summary-item"><strong>臨床的要点:</strong> {p.get("takeaway", "")}</div>
-                </div>
-            </article>
-        </a>
+        <article class="paper-card {category_class}">
+            <div class="card-header">
+                {highlight_badge}
+                <span class="badge journal-badge">{journal}</span>
+            </div>
+            <h2 class="title-ja">{p.get("title_ja", "")}</h2>
+            <p class="title-en">{p.get("title_en", "")}</p>
+            <div class="meta-row">
+                <span>👤 {author}</span>
+                <span>📅 {pub_date}</span>
+                <a href="{pubmed_url}" target="_blank" rel="noopener noreferrer" class="pmid-link">PMID: {pmid} ↗</a>
+            </div>
+            <div class="summary-box">
+                <div class="summary-item"><strong>研究デザイン:</strong> {p.get("study_design", "")}</div>
+                <div class="summary-item"><strong>主要結果:</strong> {p.get("results", "")}</div>
+                <div class="summary-item"><strong>臨床的要点:</strong> {p.get("takeaway", "")}</div>
+            </div>
+        </article>
         """
 
     full_html = f"""<!DOCTYPE html>
@@ -317,23 +325,18 @@ def build_fixed_html(analyzed_papers, original_papers, date_str, archive_list, i
         
         main {{ max-width: 1000px; margin: 24px auto; padding: 0 24px; }}
         
-        a.paper-card-link {{
-            display: block;
-            text-decoration: none;
-            color: inherit;
-            margin-bottom: 20px;
-        }}
         .paper-card {{
             background: var(--card-bg);
             border-radius: 16px;
             padding: 24px;
+            margin-bottom: 20px;
             box-shadow: 0 4px 20px rgba(0,0,0,0.03);
             border: 1px solid var(--border-color);
             transition: border-color 0.2s ease, box-shadow 0.2s ease;
         }}
-        a.paper-card-link:hover .paper-card {{
-            border-color: rgba(0, 102, 204, 0.4);
-            box-shadow: 0 6px 24px rgba(0,102,204,0.08);
+        .paper-card:hover {{
+            border-color: rgba(0, 102, 204, 0.3);
+            box-shadow: 0 6px 24px rgba(0,0,0,0.06);
         }}
         
         .card-header {{ display: flex; gap: 8px; margin-bottom: 12px; align-items: center; }}
@@ -343,7 +346,21 @@ def build_fixed_html(analyzed_papers, original_papers, date_str, archive_list, i
         .title-ja {{ font-size: 18px; font-weight: 700; margin-bottom: 6px; color: #0f172a; line-height: 1.35; }}
         .title-en {{ font-size: 13px; color: var(--text-sub); margin-bottom: 14px; font-style: italic; }}
         .meta-row {{ display: flex; gap: 16px; font-size: 12px; color: var(--text-sub); margin-bottom: 16px; flex-wrap: wrap; align-items: center; }}
-        .pmid-badge {{ color: var(--accent); font-weight: 600; background: #eff6ff; padding: 2px 8px; border-radius: 4px; }}
+        
+        .pmid-link {{
+            color: var(--accent);
+            font-weight: 600;
+            background: #eff6ff;
+            padding: 3px 10px;
+            border-radius: 6px;
+            text-decoration: none;
+            transition: background 0.2s ease;
+        }}
+        .pmid-link:hover {{
+            background: #dbeafe;
+            text-decoration: underline;
+        }}
+
         .summary-box {{ background: #f8fafc; border-radius: 10px; padding: 14px; font-size: 13.5px; border: 1px solid #f1f5f9; }}
         .summary-item {{ margin-bottom: 6px; color: #334155; }}
         .summary-item:last-child {{ margin-bottom: 0; }}
@@ -378,7 +395,6 @@ def build_fixed_html(analyzed_papers, original_papers, date_str, archive_list, i
             <button class="tab-btn" onclick="filterCategory('pancreas-benign', this)">2. 膵良性疾患</button>
             <button class="tab-btn" onclick="filterCategory('biliary-benign', this)">3. 胆道良性疾患</button>
             <button class="tab-btn" onclick="filterCategory('cancer', this)">4. 膵・胆道悪性疾患</button>
-            <button class="tab-btn" onclick="filterCategory('transplant', this)">5. 肝胆膵移植外科</button>
         </nav>
     </header>
 
@@ -395,15 +411,15 @@ def build_fixed_html(analyzed_papers, original_papers, date_str, archive_list, i
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
 
-            const links = document.querySelectorAll('.paper-card-link');
-            links.forEach(link => {{
+            const cards = document.querySelectorAll('.paper-card');
+            cards.forEach(card => {{
                 if (cat === 'all') {{
-                    link.style.display = 'block';
+                    card.style.display = 'block';
                 }} else {{
-                    if (link.classList.contains(cat)) {{
-                        link.style.display = 'block';
+                    if (card.classList.contains(cat)) {{
+                        card.style.display = 'block';
                     }} else {{
-                        link.style.display = 'none';
+                        card.style.display = 'none';
                     }}
                 }}
             }});
@@ -419,7 +435,6 @@ def build_fixed_html(analyzed_papers, original_papers, date_str, archive_list, i
 def save_and_manage_archives(analyzed_papers, original_papers, date_display_str, date_file_str):
     os.makedirs("docs/archives", exist_ok=True)
     
-    # 既存アーカイブ一覧の取得
     archive_files = sorted(glob.glob("docs/archives/weekly-*.html"), reverse=True)
     archives = []
     for file_path in archive_files[:52]:
@@ -430,17 +445,14 @@ def save_and_manage_archives(analyzed_papers, original_papers, date_display_str,
             "filename": filename
         })
 
-    # 今回のファイルをアーカイブリストの先頭に追加
     current_arch = {"date": date_file_str, "filename": f"weekly-{date_file_str}.html"}
     if not any(a["date"] == date_file_str for a in archives):
         archives.insert(0, current_arch)
 
-    # 1. トップページ (docs/index.html) の生成・保存
     root_html = build_fixed_html(analyzed_papers, original_papers, date_display_str, archives, is_root=True)
     with open("docs/index.html", "w", encoding="utf-8") as f:
         f.write(root_html)
 
-    # 2. 週別アーカイブ (docs/archives/weekly-YYYY-MM-DD.html) の生成・保存
     archive_html = build_fixed_html(analyzed_papers, original_papers, date_display_str, archives, is_root=False)
     archive_path = os.path.join("docs/archives", f"weekly-{date_file_str}.html")
     with open(archive_path, "w", encoding="utf-8") as f:
