@@ -8,27 +8,26 @@ import xml.etree.ElementTree as ET
 from google import genai
 
 # ----------------------------------------------------
-# 対象ジャーナルの厳格リスト（指定の54誌）
+# 対象ジャーナルの厳選リスト（指定誌）
 # ----------------------------------------------------
 TARGET_JOURNALS = [
-    "Nature Reviews Gastroenterology & Hepatology", "Journal of Hepatology",
+    "N Engl J Med", "Nature Reviews Gastroenterology & Hepatology", "Journal of Hepatology",
     "Lancet Gastroenterology & Hepatology", "Gastroenterology", "Gut",
-    "Clinical and Molecular Hepatology", "Hepatology", "Clinical Gastroenterology and Hepatology",
-    "Gut Microbes", "Endoscopy", "Liver Cancer", "Journal of Crohn's & Colitis", "Journal of Crohns & Colitis",
-    "JHEP Reports", "American Journal of Gastroenterology", "Cellular and Molecular Gastroenterology and Hepatology",
+    "Hepatology", "Clinical Gastroenterology and Hepatology",
+    "Endoscopy", "Liver Cancer", 
+    "JHEP Reports", "American Journal of Gastroenterology",
     "Hepatobiliary Surgery and Nutrition", "Gastrointestinal Endoscopy", "Hepatology International",
-    "World Journal of Gastroenterology", "Alimentary Pharmacology & Therapeutics",
+    "Alimentary Pharmacology & Therapeutics",
     "United European Gastroenterology Journal", "Annals of Hepatology", "Liver International",
-    "Gastric Cancer", "Hepatology Communications", "Journal of Clinical and Translational Hepatology",
-    "Esophagus", "Journal of Gastroenterology", "Inflammatory Bowel Diseases",
-    "Best Practice & Research Clinical Gastroenterology", "Journal of Gastric Cancer",
-    "Gut Pathogens", "Digestive and Liver Disease", "Revista Espanola de Enfermedades Digestivas",
-    "Endoscopic Ultrasound", "Helicobacter", "Gut and Liver", "Gastroenterology Report",
-    "Seminars in Liver Disease", "Pancreatology", "Hepatobiliary & Pancreatic Diseases International",
-    "Liver Transplantation", "Gastroenterology Clinics of North America", "Hepatology Research",
-    "Journal of Neurogastroenterology and Motility", "Digestive Endoscopy",
-    "Clinical and Translational Gastroenterology", "Journal of Gastroenterology and Hepatology",
-    "Digestion", "HPB", "BMC Gastroenterology", "Digestive Diseases and Sciences",
+    "Hepatology Communications", "Journal of Clinical and Translational Hepatology",
+    "Journal of Gastroenterology", 
+    "Digestive and Liver Disease", 
+    "Endoscopic Ultrasound", "Gut and Liver", 
+    "Pancreatology", "Hepatobiliary & Pancreatic Diseases International",
+    "Liver Transplantation", "Hepatology Research",
+    "Digestive Endoscopy",
+    "Journal of Gastroenterology and Hepatology",
+    "HPB", "BMC Gastroenterology", "Digestive Diseases and Sciences",
     "Journal of Hepato-Biliary-Pancreatic Sciences", "Pancreas"
 ]
 
@@ -54,7 +53,7 @@ def fetch_pubmed_papers():
     query = f"{term_keywords} {date_filter}"
     
     search_res = requests.post(f"{base_url}/esearch.fcgi", data={
-        "db": "pubmed", "term": query, "retmode": "json", "retmax": 80
+        "db": "pubmed", "term": query, "retmode": "json", "retmax": 100
     }, headers=headers)
     
     if search_res.status_code != 200:
@@ -126,7 +125,7 @@ def fetch_pubmed_papers():
     return papers
 
 # ----------------------------------------------------
-# 2. Gemini APIで論文の解析・日本語要約・カテゴリ分類を行う (gemini-3.8-flash 固定)
+# 2. Gemini APIで全件解析・日本語要約・カテゴリ分類を行う
 # ----------------------------------------------------
 def analyze_papers_with_gemini(papers):
     client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
@@ -138,20 +137,20 @@ def analyze_papers_with_gemini(papers):
 
     prompt = f"""
 あなたは世界最高峰の胆膵内科ならびに胆膵内視鏡の臨床医かつ臨床研究者です。
-以下の論文データリストから、各論文の日本語タイトル、カテゴリ分類、研究デザイン、主要結果、臨床的要点を抽出し、指定のJSONフォーマットで出力してください。
+入力された【すべての論文データ】（計{len(simplified_papers)}件）について、1件も省略・間引くことなく全件の構造化要約を作成し、指定のJSONフォーマットで出力してください。
 
 論文データ:
 {simplified_papers}
 
 【JSON出力フォーマット (厳守)】
-以下のキーを持つJSON配列 (Array) の形式で出力してください：
+以下のキーを持つJSON配列 (Array) の形式で、入力された{len(simplified_papers)}件全件を出力してください：
 [
   {{
     "id": 論文データにある数値ID (0, 1, 2...),
     "title_ja": "魅力的で正確な日本語タイトル",
     "title_en": "英語原題",
     "category": "カテゴリID (endo, pancreas-benign, biliary-benign, cancer, case-report のいずれか)",
-    "is_highlight": trueまたはfalse (最重要3~4報のみtrue),
+    "is_highlight": trueまたはfalse (全論文の中で特に臨床的インパクトが高い最重要3~4報のみtrue、その他はfalse),
     "study_design": "研究デザイン・対象症例数 (例: 多施設RCT / 320例 / 症例報告)",
     "results": "主要結果 (主要エンドポイントや数値、症例概要)",
     "takeaway": "臨床的要点 (日常診療への影響・教訓)"
@@ -165,15 +164,14 @@ def analyze_papers_with_gemini(papers):
 - cancer: 膵・胆道悪性疾患 (膵癌, PDAC, PanNET, 胆管がん、胆嚢癌、十二指腸乳頭部癌/腺腫等)
 - case-report: 症例報告 (臨床的に教訓的・希少・貴重な症例報告、Case Report、Case Series等)
 
-※ 余計な解説テキストやマークダウンは入れず、純粋なJSONテキストのみを出力してください。
+※ 1件も件数を減らさず、全{len(simplified_papers)}件の配列を返してください。余計な解説テキストやマークダウンは入れず、純粋なJSONテキストのみを出力してください。
 """
 
     model_name = 'gemini-3.8-flash'
     
-    # 短時間の軽量リトライ (3回)
     for attempt in range(3):
         try:
-            print(f"モデル [{model_name}] で解析を実行中... (試行 {attempt + 1}/3)")
+            print(f"モデル [{model_name}] で全件解析を実行中... (試行 {attempt + 1}/3)")
             response = client.models.generate_content(
                 model=model_name,
                 contents=prompt
@@ -265,9 +263,9 @@ def build_fixed_html(analyzed_papers, original_papers, date_str, archive_list, i
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>今週の胆膵疾患研究ハイライト | Pancreatobiliary Weekly Digest</title>
-    <meta name="description" content="主要54誌から厳選した胆膵疾患・胆膵内視鏡領域の最新臨床研究（Original Article）ウィークリーダッシュボード。">
+    <meta name="description" content="主要誌から厳選した胆膵疾患・胆膵内視鏡領域の最新臨床研究（Original Article）ウィークリーダッシュボード。">
     <meta property="og:title" content="今週の胆膵疾患研究ハイライト">
-    <meta property="og:description" content="主要54誌から厳選した胆膵領域の最新臨床研究・一文要約サマリー。">
+    <meta property="og:description" content="主要誌から厳選した胆膵領域の最新臨床研究・一文要約サマリー。">
     <meta property="og:type" content="website">
     <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='[http://www.w3.org/2000/svg'%20viewBox='0%200%20100%20100'%3E%3Ctext%20y='.9em'%20font-size='90'%3E%F0%9F%94%AC%3C/text%3E%3C/svg%3E](http://www.w3.org/2000/svg'%20viewBox='0%200%20100%20100'%3E%3Ctext%20y='.9em'%20font-size='90'%3E%F0%9F%94%AC%3C/text%3E%3C/svg%3E)">
     <style>
@@ -499,7 +497,7 @@ if __name__ == "__main__":
     date_display_str = today.strftime("%Y年%m月%d日週")
     date_file_str = today.strftime("%Y-%m-%d")
     
-    print(f"[{date_display_str}] 厳選54誌からの臨床研究論文アーカイブの抽出を開始します...")
+    print(f"[{date_display_str}] 対象誌からの臨床研究論文アーカイブの抽出を開始します...")
     
     papers = fetch_pubmed_papers()
     
