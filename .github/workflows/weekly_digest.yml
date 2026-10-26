@@ -6,7 +6,6 @@ on:
     - cron: '0 20 * * 6'
   workflow_dispatch: # 手動実行ボタン
 
-# ボットに書き込み（git push）権限を付与
 permissions:
   contents: write
 
@@ -27,13 +26,13 @@ jobs:
           python -m pip install --upgrade pip
           pip install requests google-genai
 
-      # エラー発生時に10分（600秒）空けて最大3回まで自動再試行
+      # エラー発生時に15分（900秒）空けて最大3回まで自動再試行
       - name: Run main.py with auto-retry
         uses: nick-fields/retry@v3
         with:
-          timeout_minutes: 10
+          timeout_minutes: 15
           max_attempts: 3
-          retry_wait_seconds: 600
+          retry_wait_seconds: 900
           command: python main.py
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
