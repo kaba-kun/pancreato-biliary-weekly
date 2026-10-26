@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>今週の胆膵疾患研究ハイライト | Pancreatobiliary Weekly Digest</title>
+    <meta name="description" content="主要54誌から厳選した胆膵疾患・胆膵内視鏡領域の最新臨床研究（Original Article）ウィークリーダッシュボード。">
+    <meta property="og:title" content="今週の胆膵疾患研究ハイライト">
+    <meta property="og:description" content="主要54誌から厳選した胆膵領域の最新臨床研究・一文要約サマリー。">
+    <meta property="og:type" content="website">
+    <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='[http://www.w3.org/2000/svg'%20viewBox='0%200%20100%20100'%3E%3Ctext%20y='.9em'%20font-size='90'%3E%F0%9F%94%AC%3C/text%3E%3C/svg%3E](http://www.w3.org/2000/svg'%20viewBox='0%200%20100%20100'%3E%3Ctext%20y='.9em'%20font-size='90'%3E%F0%9F%94%AC%3C/text%3E%3C/svg%3E)">
+    <style>
+        :root {
+            --bg-color: #f5f5f7;
+            --text-main: #1d1d1f;
+            --text-sub: #86868b;
+            --card-bg: #ffffff;
+            --accent: #0066cc;
+            --border-color: rgba(0, 0, 0, 0.08);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Inter", sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+            padding-bottom: 40px;
+        }
+        
+        header {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 1px solid var(--border-color);
+            padding: 16px 0 12px;
+        }
+        .header-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 0 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .site-title-link {
+            text-decoration: none;
+            color: inherit;
+        }
+        .site-title-link:hover .site-title {
+            color: var(--accent);
+        }
+        .site-title { font-size: 20px; font-weight: 700; letter-spacing: -0.02em; color: var(--text-main); transition: color 0.2s ease; }
+        .sub-title { font-size: 13px; color: var(--text-sub); margin-top: 2px; }
+        .archive-select {
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background: #fff;
+            font-size: 13px;
+            cursor: pointer;
+            color: var(--text-main);
+        }
+        
+        nav.tabs-nav {
+            max-width: 1000px;
+            margin: 12px auto 0;
+            padding: 0 24px;
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            white-space: nowrap;
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        nav.tabs-nav::-webkit-scrollbar {
+            display: none;
+        }
+        .tab-btn {
+            padding: 8px 16px;
+            border-radius: 20px;
+            border: none;
+            background: #e5e5ea;
+            color: var(--text-main);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s ease, color 0.2s ease;
+        }
+        .tab-btn.active { background: var(--accent); color: #fff; }
+        
+        main { max-width: 1000px; margin: 24px auto; padding: 0 24px; }
+        
+        .paper-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+            border: 1px solid var(--border-color);
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        .paper-card:hover {
+            border-color: rgba(0, 102, 204, 0.3);
+            box-shadow: 0 6px 24px rgba(0,0,0,0.06);
+        }
+        
+        .card-header { display: flex; gap: 8px; margin-bottom: 12px; align-items: center; }
+        .badge { font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 6px; text-transform: uppercase; }
+        .highlight-badge { background: #fff3dc; color: #b45309; border: 1px solid #fde68a; }
+        .journal-badge { background: #f1f5f9; color: #475569; }
+        .title-ja { font-size: 18px; font-weight: 700; margin-bottom: 6px; color: #0f172a; line-height: 1.35; }
+        .title-en { font-size: 13px; color: var(--text-sub); margin-bottom: 14px; font-style: italic; }
+        .meta-row { display: flex; gap: 16px; font-size: 12px; color: var(--text-sub); margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
+        
+        .pmid-link {
+            color: var(--accent);
+            font-weight: 600;
+            background: #eff6ff;
+            padding: 3px 10px;
+            border-radius: 6px;
+            text-decoration: none;
+            transition: background 0.2s ease;
+        }
+        .pmid-link:hover {
+            background: #dbeafe;
+            text-decoration: underline;
+        }
+
+        .summary-box { background: #f8fafc; border-radius: 10px; padding: 14px; font-size: 13.5px; border: 1px solid #f1f5f9; }
+        .summary-item { margin-bottom: 6px; color: #334155; }
+        .summary-item:last-child { margin-bottom: 0; }
+        .summary-item strong { color: #0f172a; }
+
+        footer {
+            max-width: 1000px;
+            margin: 40px auto 0;
+            padding: 24px;
+            text-align: center;
+            border-top: 1px solid var(--border-color);
+            color: var(--text-sub);
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-container">
+            <div>
+                <a href="../index.html" class="site-title-link">
+                    <div class="site-title">今週の胆膵疾患研究ハイライト</div>
+                </a>
+                <div class="sub-title">Pancreatobiliary Weekly Digest (2026年10月26日週)</div>
+            </div>
+            <select onchange="location.href=this.value" class="archive-select">
+                <option value="../index.html">最新号 (最新)</option>
+<option value="weekly-2026-10-26.html">2026-10-26</option>
+<option value="weekly-2026-10-24.html">2026-10-24</option>
+            </select>
+        </div>
+        <nav class="tabs-nav">
+            <button class="tab-btn active" onclick="filterCategory('all', this)">すべて</button>
+            <button class="tab-btn" onclick="filterCategory('highlight', this)">⭐ TOPハイライト</button>
+            <button class="tab-btn" onclick="filterCategory('endo', this)">1. 胆膵内視鏡</button>
+            <button class="tab-btn" onclick="filterCategory('pancreas-benign', this)">2. 膵良性疾患</button>
+            <button class="tab-btn" onclick="filterCategory('biliary-benign', this)">3. 胆道良性疾患</button>
+            <button class="tab-btn" onclick="filterCategory('cancer', this)">4. 膵・胆道悪性疾患</button>
+            <button class="tab-btn" onclick="filterCategory('case-report', this)">5. 症例報告</button>
+        </nav>
+    </header>
+
+    <main id="cards-container">
+        
+        <article class="paper-card endo">
+            <div class="card-header">
+                
+                <span class="badge journal-badge">The Korean journal of gastroenterology = Taehan Sohwagi Hakhoe chi</span>
+            </div>
+            <h2 class="title-ja">膵充実性腫瘍に対する超音波内視鏡下組織採取術（EUS-TA）の最新動向</h2>
+            <p class="title-en">[Endoscopic Ultrasound-Guided Tissue Acquisition of Pancreatic Solid Tumors].</p>
+            <div class="meta-row">
+                <span>👤 Kim WJ et al.</span>
+                <span>📅 2026-Oct-25</span>
+                <a href="[https://pubmed.ncbi.nlm.nih.gov/](https://pubmed.ncbi.nlm.nih.gov/)42928003/" target="_blank" rel="noopener noreferrer" class="pmid-link">PMID: 42928003 ↗</a>
+            </div>
+            <div class="summary-box">
+                <div class="summary-item"><strong>研究デザイン:</strong> ナラティブレビュー</div>
+                <div class="summary-item"><strong>主要結果:</strong> 膵充実性病変に対するEUS-FNBの針デザイン（Franseen針、fork-tip針等）、採取手技（fanning法、torque法）、吸引法（slow-pull法、wet suction法、ヘパリン化wet suction法）、肉眼的新鮮標本評価（MOSE）、偶発症管理に関する知見を整理。端切除型FNB針はFNA針に比べ組織採取量・診断精度が優れ、次世代シーケンシング（NGS）等のゲノム医療にも十分な検体採取を可能にする。</div>
+                <div class="summary-item"><strong>臨床的要点:</strong> 膵癌・膵腫瘍のEUS-TAでは、Franseen針やfork-tip針等の新規FNB針とfanning/torque手技、slow-pullやwet suction法を組み合わせ、MOSEによる肉眼評価を行うことで、穿刺回数を減らしつつ高精度の病理・分子遺伝学的診断が可能となる。</div>
+            </div>
+        </article>
+        
+        <article class="paper-card endo highlight">
+            <div class="card-header">
+                <span class="badge highlight-badge">⭐ TOP HIGHLIGHT</span>
+                <span class="badge journal-badge">Journal of gastroenterology and hepatology</span>
+            </div>
+            <h2 class="title-ja">胆管狭窄に対する端切除型針を用いた超音波内視鏡下穿刺生検（EUS-FNB）：多施設前向き研究</h2>
+            <p class="title-en">Endoscopic Ultrasound-Guided Fine-Needle Biopsy for Tissue Sampling of Biliary Strictures: A Multicenter Prospective Study.</p>
+            <div class="meta-row">
+                <span>👤 Facciorusso A et al.</span>
+                <span>📅 2026-Oct-23</span>
+                <a href="[https://pubmed.ncbi.nlm.nih.gov/](https://pubmed.ncbi.nlm.nih.gov/)42922402/" target="_blank" rel="noopener noreferrer" class="pmid-link">PMID: 42922402 ↗</a>
+            </div>
+            <div class="summary-box">
+                <div class="summary-item"><strong>研究デザイン:</strong> 多施設前向き観察研究 (国際4施設 / 45例 [遠位狭窄30例、肝門部狭窄15例])</div>
+                <div class="summary-item"><strong>主要結果:</strong> 検体適格率は全体で93.3%（遠位96.6%、肝門部86.6%）。1パス目での適格率は遠位73.3% vs 肝門部40%（p=0.04）、2パス後では遠位96.6% vs 肝門部60%（p=0.03）であった。全体の診断精度は91.1%（遠位96.6%、肝門部80%）、感度は89.7%（遠位96.4%、肝門部75%）であり、偶発症は軽微な出血2例（4.4%）のみであった。</div>
+                <div class="summary-item"><strong>臨床的要点:</strong> 明らかな膵・腹部腫瘤を形成しない胆管狭窄に対して、端切除型針を用いたEUS-FNBは安全かつ高い診断能を示す。特に遠位胆管狭窄では診断精度96.6%と極めて優れており、胆管狭窄の組織診断アルゴリズムにおいて有望なモダリティである。</div>
+            </div>
+        </article>
+        
+        <article class="paper-card endo highlight">
+            <div class="card-header">
+                <span class="badge highlight-badge">⭐ TOP HIGHLIGHT</span>
+                <span class="badge journal-badge">Endoscopy</span>
+            </div>
+            <h2 class="title-ja">肝疾患および門脈圧亢進症における超音波内視鏡（EUS）：欧州消化器内視鏡学会（ESGE）技術・テクノロジーレビュー</h2>
+            <p class="title-en">Endoscopic ultrasound in hepatology: A European Society of Gastrointestinal Endoscopy (ESGE) Technical and Technology Review.</p>
+            <div class="meta-row">
+                <span>👤 Fabbri C et al.</span>
+                <span>📅 2026-Oct-22</span>
+                <a href="[https://pubmed.ncbi.nlm.nih.gov/](https://pubmed.ncbi.nlm.nih.gov/)42913703/" target="_blank" rel="noopener noreferrer" class="pmid-link">PMID: 42913703 ↗</a>
+            </div>
+            <div class="summary-box">
+                <div class="summary-item"><strong>研究デザイン:</strong> 学会技術レビューおよび推奨声明 (ESGEステートメント、GRADE評価)</div>
+                <div class="summary-item"><strong>主要結果:</strong> 肝硬度測定（SWE）や造影EUSの補助的診断能、エキスパートセンターにおけるEUSガイド下肝生検（EUS-LB）および門脈圧較差測定（EUS-PPGM）の有用性を評価。胃静脈瘤に対するEUSガイド下治療（コイル留置・シアノアクリレート併用）は、十分な専門技術がある施設において直視下内視鏡的注入硬化療法の妥当な代替治療として支持された。門脈血液生検は依然として研究的段階と位置付けられた。</div>
+                <div class="summary-item"><strong>臨床的要点:</strong> EUSは胆膵領域にとどまらず、低侵襲な肝生検、門脈圧測定、胃静脈瘤治療など肝疾患・門脈圧亢進症マネジメントの重要プラットフォームになりつつある。手技の標準化と適応症例の選定が今後の普及の鍵となる。</div>
+            </div>
+        </article>
+        
+        <article class="paper-card pancreas-benign highlight">
+            <div class="card-header">
+                <span class="badge highlight-badge">⭐ TOP HIGHLIGHT</span>
+                <span class="badge journal-badge">Journal of clinical gastroenterology</span>
+            </div>
+            <h2 class="title-ja">壊死性膵炎患者におけるメタボリックシンドロームの合併と臨床転帰悪化の関連</h2>
+            <p class="title-en">Metabolic Syndrome Is Associated With Worsened Clinical Outcomes in Individuals With Necrotizing Pancreatitis.</p>
+            <div class="meta-row">
+                <span>👤 AbiMansour JP et al.</span>
+                <span>📅 2026-Oct-23</span>
+                <a href="[https://pubmed.ncbi.nlm.nih.gov/](https://pubmed.ncbi.nlm.nih.gov/)42919446/" target="_blank" rel="noopener noreferrer" class="pmid-link">PMID: 42919446 ↗</a>
+            </div>
+            <div class="summary-box">
+                <div class="summary-item"><strong>研究デザイン:</strong> 単施設後方視的コホート研究 / 276例 (壊死性膵炎、うちMetS合併154例 [55.8%])</div>
+                <div class="summary-item"><strong>主要結果:</strong> MetS合併群は非合併群と比較して、ICU入室率（38.3% vs 17.2%, P<0.001）、在院日数中央値（9.0日 vs 5.0日, P=0.029）、敗血症発生率（27.5% vs 15.6%, P=0.019）、呼吸不全（31.2% vs 18%, P=0.013）、腎不全（35.7% vs 21.3%, P=0.009）、院内死亡率（17.5% vs 8.2%, P=0.024）がいずれも有意に高かった。さらに感染性膵壊死（IPN）の発生率も有意に増加した（39.6% vs 23.0%, P=0.003）。</div>
+                <div class="summary-item"><strong>臨床的要点:</strong> 壊死性膵炎においてメタボリックシンドロームの合併は、感染性膵壊死、多臓器不全、ICU管理、死亡リスクを倍増させる強力な予後不良予測因子である。入院早期からMetS併発例をハイリスクとして認識し、集学的管理を行う必要がある。</div>
+            </div>
+        </article>
+        
+        <article class="paper-card pancreas-benign">
+            <div class="card-header">
+                
+                <span class="badge journal-badge">Clinical and translational gastroenterology</span>
+            </div>
+            <h2 class="title-ja">急性および慢性膵炎における患者報告アウトカム尺度（PROMIS）の計量心理学的妥当性検証：PROCEED研究</h2>
+            <p class="title-en">Psychometric Validation of PROMIS Measures in Acute and Chronic Pancreatitis.</p>
+            <div class="meta-row">
+                <span>👤 Askew RL et al.</span>
+                <span>📅 2026-Oct-22</span>
+                <a href="[https://pubmed.ncbi.nlm.nih.gov/](https://pubmed.ncbi.nlm.nih.gov/)42913624/" target="_blank" rel="noopener noreferrer" class="pmid-link">PMID: 42913624 ↗</a>
+            </div>
+            <div class="summary-box">
+                <div class="summary-item"><strong>研究デザイン:</strong> 多施設前向き縦断コホート研究 (PROCEED研究 / 1,927例)</div>
+                <div class="summary-item"><strong>主要結果:</strong> 急性膵炎、再発性急性膵炎、慢性膵炎患者においてPROMIS-29、PROMIS-Global Health、PROMIS Pain Qualityスケールを評価。全検証項目で計量心理学的基準を満たし、スコアは正規分布を示して各症状領域を網羅した。既存のQoL尺度との高い収束妥当性、診断サブグループ間を識別する弁別能、優れた内的整合性を示し、年齢・性別・人種による測定不変性も確認された。</div>
+                <div class="summary-item"><strong>臨床的要点:</strong> PROMIS測定尺度は急性および慢性膵炎の症状負荷・QoL評価において極めて高い信頼性と妥当性を有しており、今後の膵炎に関する臨床試験や実臨床における標準的PRO評価ツール（Core Outcome Set）として利用が推奨される。</div>
+            </div>
+        </article>
+        
+        <article class="paper-card biliary-benign highlight">
+            <div class="card-header">
+                <span class="badge highlight-badge">⭐ TOP HIGHLIGHT</span>
+                <span class="badge journal-badge">Gastroenterology</span>
+            </div>
+            <h2 class="title-ja">原発性胆汁性胆管炎（PBC）の管理に関するAGA/AASLD臨床診療ガイドライン</h2>
+            <p class="title-en">AGA/AASLD Clinical Practice Guideline on Management of Primary Biliary Cholangitis.</p>
+            <div class="meta-row">
+                <span>👤 Levy C et al.</span>
+                <span>📅 2026-Nov</span>
+                <a href="[https://pubmed.ncbi.nlm.nih.gov/](https://pubmed.ncbi.nlm.nih.gov/)42914292/" target="_blank" rel="noopener noreferrer" class="pmid-link">PMID: 42914292 ↗</a>
+            </div>
+            <div class="summary-box">
+                <div class="summary-item"><strong>研究デザイン:</strong> 臨床診療ガイドライン (システマティックレビューおよびGRADEシステムに基づく推奨策定)</div>
+                <div class="summary-item"><strong>主要結果:</strong> 成人のPBC管理に関する6つの推奨を提示。(1)AMA陰性疑い例に対するPBC特異的抗核抗体（gp210/sp100）検査、(2)第一選択薬としてのウルソデオキシコール酸（UDCA）投与、(3)予後予測・リスク層別化のための肝硬度測定（エラストグラフィ）、(4)UDCA不応・不耐例に対するPPAR作動薬の導入、(5)中等度〜重度そう痒症に対するlinerixibat、(6)肝移植後の再発予防目的のUDCA予防投与を推奨した。</div>
+                <div class="summary-item"><strong>臨床的要点:</strong> PBC診療において、肝エラストグラフィによる非侵襲的リスク層別化と、UDCA不応例に対するPPAR作動薬への早期ステップアップ、移植後再発予防など、病態進行抑制とQoL向上を両立する包括的な標準治療指針が確立された。</div>
+            </div>
+        </article>
+        
+        <article class="paper-card biliary-benign">
+            <div class="card-header">
+                
+                <span class="badge journal-badge">Liver transplantation : official publication of the American Association for the Study of Liver Diseases and the International Liver Transplantation Society</span>
+            </div>
+            <h2 class="title-ja">小児自己免疫性肝疾患の肝移植における免疫抑制導入療法の有効性とリスク：SPLITレジストリ解析</h2>
+            <p class="title-en">Benefits and risks of induction immunosuppression in pediatric autoimmune liver disease from SPLIT Registry.</p>
+            <div class="meta-row">
+                <span>👤 Jarasvaraparn C et al.</span>
+                <span>📅 2026-Oct-23</span>
+                <a href="[https://pubmed.ncbi.nlm.nih.gov/](https://pubmed.ncbi.nlm.nih.gov/)42912646/" target="_blank" rel="noopener noreferrer" class="pmid-link">PMID: 42912646 ↗</a>
+            </div>
+            <div class="summary-box">
+                <div class="summary-item"><strong>研究デザイン:</strong> 多施設後方視的レジストリ解析 (SPLITデータベース / 小児肝移植445例)</div>
+                <div class="summary-item"><strong>主要結果:</strong> 小児自己免疫性肝疾患（AIH、PSC、自己免疫性硬化性胆管炎）の肝移植において、IL-2受容体拮抗薬（IL2RA）導入群はステロイド単独群や抗胸腺細胞グロブリン（ATG）群に比べ、術後30日以内の生検確定拒絶反応が有意に低かった（11.2% vs 20.9% vs 28%, p=0.05）。ATG導入群は術後30-90日の培養陽性感染症リスクが10倍に上昇した（aOR=10.0, p=0.02）。5年グラフト生着率や患者生存率には有意差を認めなかった。</div>
+                <div class="summary-item"><strong>臨床的要点:</strong> 小児自己免疫性肝疾患（PSC等）に対する肝移植では、IL2RAを用いた免疫抑制導入療法が、感染症リスクを増大させることなく早期急性拒絶反応を有意に抑制できる最適なレジメンである。</div>
+            </div>
+        </article>
+        
+        <article class="paper-card cancer">
+            <div class="card-header">
+                
+                <span class="badge journal-badge">Pancreatology : official journal of the International Association of Pancreatology (IAP) ... [et al.]</span>
+            </div>
+            <h2 class="title-ja">膵管腺癌における代謝異常：病態メカニズムと治療応用</h2>
+            <p class="title-en">Metabolic dysfunctions in pancreatic ductal adenocarcinoma: Pathogenic mechanisms and therapeutic implications.</p>
+            <div class="meta-row">
+                <span>👤 Rodrigues R et al.</span>
+                <span>📅 2026-Oct-20</span>
+                <a href="[https://pubmed.ncbi.nlm.nih.gov/](https://pubmed.ncbi.nlm.nih.gov/)42919732/" target="_blank" rel="noopener noreferrer" class="pmid-link">PMID: 42919732 ↗</a>
+            </div>
+            <div class="summary-box">
+                <div class="summary-item"><strong>研究デザイン:</strong> ナラティブレビュー</div>
+                <div class="summary-item"><strong>主要結果:</strong> 肥満、脂質異常症、2型糖尿病（T2DM）、非アルコール性脂肪膵疾患（NAFPD）が膵管腺癌（PDAC）の発症・進展・化学療法抵抗性に寄与する分子機序を概説。スタチンやメトホルミンのリパーパシング、およびSGLT2阻害薬とメトホルミンの併用など、腫瘍の微小環境や栄養飢餓状態を利用した新規代謝標的治療の現状と展望をまとめた。</div>
+                <div class="summary-item"><strong>臨床的要点:</strong> 新規発症糖尿病や脂肪膵などの代謝異常は膵癌の早期診断契機であると同時に治療標的となりうる。単一標的治療の限界を克服するため、患者の代謝プロファイルに基づいた複合的標的治療戦略の開発が期待される。</div>
+            </div>
+        </article>
+        
+        <article class="paper-card case-report">
+            <div class="card-header">
+                
+                <span class="badge journal-badge">The Korean journal of gastroenterology = Taehan Sohwagi Hakhoe chi</span>
+            </div>
+            <h2 class="title-ja">急性膵炎に広範な大動脈・分枝動脈血栓症を合併した1例と文献レビュー</h2>
+            <p class="title-en">Extensive Arterial Thrombosis Complicating Acute Pancreatitis: A Case Report and Literature Review.</p>
+            <div class="meta-row">
+                <span>👤 Cho MS et al.</span>
+                <span>📅 2026-Oct-25</span>
+                <a href="[https://pubmed.ncbi.nlm.nih.gov/](https://pubmed.ncbi.nlm.nih.gov/)42928010/" target="_blank" rel="noopener noreferrer" class="pmid-link">PMID: 42928010 ↗</a>
+            </div>
+            <div class="summary-box">
+                <div class="summary-item"><strong>研究デザイン:</strong> 症例報告および文献レビュー (自験例1例＋文献報告11例、計12例)</div>
+                <div class="summary-item"><strong>主要結果:</strong> 慢性膵炎の急性増悪（間質性浮腫性膵炎）後4週で持続する消化不良精査の造影CTにて、仮性嚢胞と胸腹部大動脈、両側内腸骨動脈、左鎖骨下動脈に及ぶ広範な動脈血栓症を認めた61歳男性例。抗凝固療法により血栓は消失。文献レビュー計12例中、5例が浮腫性膵炎、7例が壊死性膵炎で発症し、7例が発症1週以内、5例がそれ以降（最長60日）に診断されていた。</div>
+                <div class="summary-item"><strong>臨床的要点:</strong> 急性膵炎に伴う動脈血栓症は、壊死性膵炎のみならず間質性浮腫性膵炎でも発症し、急性期のみならず回復期・遅発性にも生じうる。遷延する症状や虚血所見を認める場合は早期の造影CTによる血管評価と迅速な抗凝固療法が重要である。</div>
+            </div>
+        </article>
+        
+    </main>
+
+    <footer>
+        <p>&copy; 2026 Pancreatobiliary Weekly Digest. All rights reserved.</p>
+    </footer>
+
+    <script>
+        function filterCategory(cat, btn) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            const cards = document.querySelectorAll('.paper-card');
+            cards.forEach(card => {
+                if (cat === 'all') {
+                    card.style.display = 'block';
+                } else {
+                    if (card.classList.contains(cat)) {
+                        card.style.display = 'block';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
