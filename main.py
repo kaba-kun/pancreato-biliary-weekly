@@ -11,7 +11,7 @@ from google import genai
 # 対象ジャーナルの厳選リスト（指定誌）
 # ----------------------------------------------------
 TARGET_JOURNALS = [
-    "N Engl J Med", "Nature Reviews Gastroenterology & Hepatology", "Journal of Hepatology",
+    "N Engl J Med", "Lancet", "Journal of Hepatology",
     "Lancet Gastroenterology & Hepatology", "Gastroenterology", "Gut",
     "Hepatology", "Clinical Gastroenterology and Hepatology",
     "Endoscopy", "Liver Cancer", 
@@ -125,7 +125,7 @@ def fetch_pubmed_papers():
     return papers
 
 # ----------------------------------------------------
-# 2. Gemini APIで全件解析・日本語要約・カテゴリ分類を行う
+# 2. Gemini APIで全件解析 (モデル候補順次切り替え ＋ 指数バックオフ)
 # ----------------------------------------------------
 def analyze_papers_with_gemini(papers):
     client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
@@ -167,34 +167,38 @@ def analyze_papers_with_gemini(papers):
 ※ 1件も件数を減らさず、全{len(simplified_papers)}件の配列を返してください。余計な解説テキストやマークダウンは入れず、純粋なJSONテキストのみを出力してください。
 """
 
-    model_name = 'gemini-3.8-flash'
+    candidate_models = ['gemini-3.8-flash', 'gemini-2.5-flash', 'gemini-2.0-flash']
     
-    for attempt in range(3):
-        try:
-            print(f"モデル [{model_name}] で全件解析を実行中... (試行 {attempt + 1}/3)")
-            response = client.models.generate_content(
-                model=model_name,
-                contents=prompt
-            )
-            raw_text = response.text.strip()
-            if raw_text.startswith("```json"):
-                raw_text = raw_text[7:]
-            if raw_text.startswith("```"):
-                raw_text = raw_text[3:]
-            if raw_text.endswith("```"):
-                raw_text = raw_text[:-3]
-            
-            analyzed = json.loads(raw_text.strip())
-            # カテゴリー順にソート（1: endo -> 2: pancreas-benign -> 3: biliary-benign -> 4: cancer -> 5: case-report）
-            analyzed.sort(key=lambda x: CATEGORY_ORDER.get(x.get("category", ""), 99))
-            return analyzed
-            
-        except Exception as e:
-            wait_time = (attempt + 1) * 10
-            print(f"一時的な通信エラー ({e})。{wait_time}秒後に再試行します...")
-            time.sleep(wait_time)
+    for model_name in candidate_models:
+        print(f"--- 無料Flashモデル [{model_name}] で試行開始 ---")
+        wait_times = [15, 30, 60]
+        for attempt, wait_sec in enumerate(wait_times):
+            try:
+                print(f"[{model_name}] 解析を実行中... (試行 {attempt + 1}/{len(wait_times)})")
+                response = client.models.generate_content(
+                    model=model_name,
+                    contents=prompt
+                )
+                raw_text = response.text.strip()
+                if raw_text.startswith("```json"):
+                    raw_text = raw_text[7:]
+                if raw_text.startswith("```"):
+                    raw_text = raw_text[3:]
+                if raw_text.endswith("```"):
+                    raw_text = raw_text[:-3]
+                
+                analyzed = json.loads(raw_text.strip())
+                analyzed.sort(key=lambda x: CATEGORY_ORDER.get(x.get("category", ""), 99))
+                print(f"解析成功！モデル [{model_name}] を使用しました。")
+                return analyzed
+                
+            except Exception as e:
+                print(f"[{model_name}] 混雑/通信エラー発生 ({e})。{wait_sec}秒待機します...")
+                time.sleep(wait_sec)
+        
+        print(f"モデル [{model_name}] が混雑しているため、次の候補モデルへ切り替えます。")
 
-    raise RuntimeError("gemini-3.8-flash が混雑しています。GitHub Actions 側の自動再試行（10分後）へ引き継ぎます。")
+    raise RuntimeError("全無料モデルが一時的に混雑しています。GitHub Actionsの15分後再試行へ引き継ぎます。")
 
 # ----------------------------------------------------
 # 3. 完全固定のApple風HTMLテンプレートをレンダリングする
