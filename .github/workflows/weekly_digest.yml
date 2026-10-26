@@ -2,9 +2,13 @@ name: Weekly Pancreatobiliary Digest Update
 
 on:
   schedule:
-    # 対策1: 日本時間 毎週日曜日 午前5:00 (UTC 毎週土曜日 20:00) に自動実行
+    # 日本時間 毎週日曜日 午前5:00 (UTC 毎週土曜日 20:00) に自動実行
     - cron: '0 20 * * 6'
-  workflow_dispatch: # 手動実行ボタンも残す
+  workflow_dispatch: # 手動実行ボタン
+
+# ボットに書き込み（git push）権限を付与
+permissions:
+  contents: write
 
 jobs:
   build-and-update:
@@ -23,7 +27,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install requests google-genai
 
-      # 対策2: エラー発生時に10分（600秒）空けて最大3回まで自動再試行
+      # エラー発生時に10分（600秒）空けて最大3回まで自動再試行
       - name: Run main.py with auto-retry
         uses: nick-fields/retry@v3
         with:
