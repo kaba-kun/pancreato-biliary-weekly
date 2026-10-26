@@ -126,7 +126,7 @@ def fetch_pubmed_papers():
     return papers
 
 # ----------------------------------------------------
-# 2. Gemini APIで論文の解析・日本語要約・カテゴリ分類を行う
+# 2. Gemini APIで論文の解析・日本語要約・カテゴリ分類を行う (gemini-3.8-flash 固定)
 # ----------------------------------------------------
 def analyze_papers_with_gemini(papers):
     client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
@@ -170,9 +170,10 @@ def analyze_papers_with_gemini(papers):
 
     model_name = 'gemini-3.8-flash'
     
-    for attempt in range(5):
+    # 短時間の軽量リトライ (3回)
+    for attempt in range(3):
         try:
-            print(f"モデル [{model_name}] で解析を実行中... (試行 {attempt + 1}/5)")
+            print(f"モデル [{model_name}] で解析を実行中... (試行 {attempt + 1}/3)")
             response = client.models.generate_content(
                 model=model_name,
                 contents=prompt
@@ -195,7 +196,7 @@ def analyze_papers_with_gemini(papers):
             print(f"一時的な通信エラー ({e})。{wait_time}秒後に再試行します...")
             time.sleep(wait_time)
 
-    raise RuntimeError("AIモデルの呼び出しに失敗しました。")
+    raise RuntimeError("gemini-3.8-flash が混雑しています。GitHub Actions 側の自動再試行（10分後）へ引き継ぎます。")
 
 # ----------------------------------------------------
 # 3. 完全固定のApple風HTMLテンプレートをレンダリングする
