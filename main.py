@@ -1,4 +1,5 @@
 import os
+import re
 import time
 import json
 import glob
@@ -8,7 +9,7 @@ import xml.etree.ElementTree as ET
 from google import genai
 
 # ----------------------------------------------------
-# 対象ジャーナルの厳選リスト（指定誌）
+# 対象36誌の指定リスト（検索用および照合用）
 # ----------------------------------------------------
 TARGET_JOURNALS = [
     "N Engl J Med", "Lancet", "Journal of Hepatology",
@@ -31,6 +32,46 @@ TARGET_JOURNALS = [
     "Journal of Hepato-Biliary-Pancreatic Sciences", "Pancreas"
 ]
 
+# 完全一致照合用の拡張セット (小文字化・表記ゆれ網羅)
+EXACT_TARGET_JOURNALS = {
+    "n engl j med", "new england journal of medicine", "the new england journal of medicine",
+    "lancet", "the lancet",
+    "journal of hepatology", "j hepatol",
+    "lancet gastroenterology & hepatology", "lancet gastroenterol hepatol", "the lancet gastroenterology & hepatology",
+    "gastroenterology",
+    "gut",
+    "hepatology",
+    "clinical gastroenterology and hepatology", "clin gastroenterol hepatol",
+    "endoscopy",
+    "liver cancer",
+    "jhep reports", "jhep rep",
+    "american journal of gastroenterology", "am j gastroenterol",
+    "hepatobiliary surgery and nutrition", "hepatobiliary surg nutr",
+    "gastrointestinal endoscopy", "gastrointest endosc",
+    "hepatology international", "hepatol int",
+    "alimentary pharmacology & therapeutics", "aliment pharmacol ther",
+    "united european gastroenterology journal", "united european gastroenterol j",
+    "annals of hepatology", "ann hepatol",
+    "liver international", "liver int",
+    "hepatology communications", "hepatol commun",
+    "journal of clinical and translational hepatology", "j clin transl hepatol",
+    "journal of gastroenterology", "j gastroenterol",
+    "digestive and liver disease", "dig liver dis",
+    "endoscopic ultrasound", "endosc ultrasound",
+    "gut and liver", "gut liver",
+    "pancreatology",
+    "hepatobiliary & pancreatic diseases international", "hepatobiliary pancreat dis int",
+    "liver transplantation", "liver transpl",
+    "hepatology research", "hepatol res",
+    "digestive endoscopy", "dig endosc",
+    "journal of gastroenterology and hepatology", "j gastroenterol hepatol",
+    "hpb", "hpb (oxford)", "hpb : the official journal of the international hepato pancreato biliary association",
+    "bmc gastroenterology", "bmc gastroenterol",
+    "digestive diseases and sciences", "dig dis sci",
+    "journal of hepato-biliary-pancreatic sciences", "j hepatobiliary pancreat sci",
+    "pancreas"
+}
+
 # カテゴリーのソート順定義
 CATEGORY_ORDER = {
     "endo": 1,
@@ -41,16 +82,21 @@ CATEGORY_ORDER = {
 }
 
 # ----------------------------------------------------
-# 1. PubMedから「指定7日間」の論文を取得 (POST方式)
+# 1. PubMedから「指定36誌」「指定7日間」の論文を取得 (POST方式)
 # ----------------------------------------------------
 def fetch_pubmed_papers():
     base_url = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils"
     headers = {"User-Agent": "PancreatobiliaryDigest/1.0"}
     
+    # 胆膵領域のキーワード
     term_keywords = '("pancreatitis"[Title/Abstract] OR "pancreatic cancer"[Title/Abstract] OR "pancreatic ductal adenocarcinoma"[Title/Abstract] OR "PDAC"[Title/Abstract] OR "pancreatic carcinoma"[Title/Abstract] OR "pancreatic neuroendocrine tumor"[Title/Abstract] OR "PanNET"[Title/Abstract] OR "IPMN"[Title/Abstract] OR "intraductal papillary mucinous neoplasm"[Title/Abstract] OR "MCN"[Title/Abstract] OR "mucinous cystic neoplasm"[Title/Abstract] OR "SCN"[Title/Abstract] OR "serous cystic neoplasm"[Title/Abstract] OR "serous cystadenoma"[Title/Abstract] OR "pancreatic cyst"[Title/Abstract] OR "pancreatic cystic"[Title/Abstract] OR "autoimmune pancreatitis"[Title/Abstract] OR "AIP"[Title/Abstract] OR "pancreatic fistula"[Title/Abstract] OR "POPF"[Title/Abstract] OR "postoperative pancreatic fistula"[Title/Abstract] OR "pancreatic duct stricture"[Title/Abstract] OR "biliary"[Title/Abstract] OR "cholangiocarcinoma"[Title/Abstract] OR "biliary tract cancer"[Title/Abstract] OR "gallbladder cancer"[Title/Abstract] OR "gallbladder carcinoma"[Title/Abstract] OR "gallbladder disease"[Title/Abstract] OR "cholangitis"[Title/Abstract] OR "cholecystitis"[Title/Abstract] OR "choledocholithiasis"[Title/Abstract] OR "common bile duct stones"[Title/Abstract] OR "gallstone"[Title/Abstract] OR "PSC"[Title/Abstract] OR "primary sclerosing cholangitis"[Title/Abstract] OR "IgG4-related sclerosing cholangitis"[Title/Abstract] OR "choledochal cyst"[Title/Abstract] OR "biliary stricture"[Title/Abstract] OR "ampullary carcinoma"[Title/Abstract] OR "ampullary cancer"[Title/Abstract] OR "cancer of the ampulla of vater"[Title/Abstract] OR "ampullary adenoma"[Title/Abstract] OR "papillary carcinoma"[Title/Abstract] OR "papillary adenoma"[Title/Abstract] OR "papillary tumor"[Title/Abstract] OR "papilla of vater"[Title/Abstract] OR "papillectomy"[Title/Abstract] OR "endoscopic papillectomy"[Title/Abstract] OR "ERCP"[Title/Abstract] OR "endoscopic retrograde cholangiopancreatography"[Title/Abstract] OR "EUS"[Title/Abstract] OR "endoscopic ultrasound"[Title/Abstract] OR "endoscopic ultrasonography"[Title/Abstract] OR "FNA"[Title/Abstract] OR "fine needle aspiration"[Title/Abstract] OR "fine-needle aspiration"[Title/Abstract] OR "FNB"[Title/Abstract] OR "fine needle biopsy"[Title/Abstract] OR "fine-needle biopsy"[Title/Abstract] OR "EUS-TA"[Title/Abstract] OR "tissue acquisition"[Title/Abstract] OR "EUS-guided"[Title/Abstract] OR "sphincterotomy"[Title/Abstract] OR "EST"[Title/Abstract] OR "endoscopic sphincterotomy"[Title/Abstract] OR "EPBD"[Title/Abstract] OR "endoscopic papillary balloon dilation"[Title/Abstract] OR "EPLBD"[Title/Abstract] OR "endoscopic papillary large balloon dilation"[Title/Abstract] OR "cholangioscopy"[Title/Abstract] OR "pancreatoscopy"[Title/Abstract] OR "biliary stent"[Title/Abstract] OR "biliary stenting"[Title/Abstract] OR "pancreatic stent"[Title/Abstract] OR "pancreatic stenting"[Title/Abstract] OR "biliary drainage"[Title/Abstract] OR "pancreatic drainage"[Title/Abstract])'
     
+    # 対象36誌の明確なフィルター（esearch時点で絞り込む）
+    journals_query = ' OR '.join([f'"{j}"[Journal]' for j in TARGET_JOURNALS])
+    journal_filter = f'AND ({journals_query})'
+    
     date_filter = 'AND ("last 7 days"[PDat])'
-    query = f"{term_keywords} {date_filter}"
+    query = f"{term_keywords} {journal_filter} {date_filter}"
     
     search_res = requests.post(f"{base_url}/esearch.fcgi", data={
         "db": "pubmed", "term": query, "retmode": "json", "retmax": 100
@@ -72,18 +118,20 @@ def fetch_pubmed_papers():
     papers = []
     
     for article in root.findall(".//PubmedArticle"):
-        journal_elem = article.find(".//Journal/Title")
-        journal = journal_elem.text if journal_elem is not None else ""
+        journal_title = article.findtext(".//Journal/Title") or ""
+        iso_abbr = article.findtext(".//Journal/ISOAbbreviation") or ""
+        medline_ta = article.findtext(".//MedlineCitation/MedlineJournalInfo/MedlineTA") or ""
         
-        is_target_journal = any(
-            target.lower() in journal.lower() or journal.lower() in target.lower() 
-            for target in TARGET_JOURNALS
-        )
-        if not is_target_journal:
+        journal_candidates = {journal_title.strip().lower(), iso_abbr.strip().lower(), medline_ta.strip().lower()}
+        
+        # 厳密な照合判定 (指定外誌の混入を完全にシャットアウト)
+        is_target = bool(journal_candidates.intersection(EXACT_TARGET_JOURNALS))
+        if not is_target:
             continue
 
-        pmid = article.find(".//PMID").text if article.find(".//PMID") is not None else ""
-        title = article.find(".//ArticleTitle").text if article.find(".//ArticleTitle") is not None else ""
+        display_journal = journal_title if journal_title else medline_ta
+        pmid = article.findtext(".//PMID") or ""
+        title = article.findtext(".//ArticleTitle") or ""
         
         author_list = article.findall(".//AuthorList/Author")
         authors_formatted = "Unknown"
@@ -116,7 +164,7 @@ def fetch_pubmed_papers():
             "id": len(papers),
             "pmid": pmid,
             "title": title,
-            "journal": journal,
+            "journal": display_journal,
             "author": authors_formatted,
             "pub_date": pub_date_str,
             "abstract": abstract
@@ -180,14 +228,13 @@ def analyze_papers_with_gemini(papers):
                     contents=prompt
                 )
                 raw_text = response.text.strip()
-                if raw_text.startswith("```json"):
-                    raw_text = raw_text[7:]
-                if raw_text.startswith("```"):
-                    raw_text = raw_text[3:]
-                if raw_text.endswith("```"):
-                    raw_text = raw_text[:-3]
                 
-                analyzed = json.loads(raw_text.strip())
+                # 正規表現による堅牢なJSON配列抽出
+                json_match = re.search(r'\[.*\]', raw_text, re.DOTALL)
+                if json_match:
+                    raw_text = json_match.group(0)
+                
+                analyzed = json.loads(raw_text)
                 analyzed.sort(key=lambda x: CATEGORY_ORDER.get(x.get("category", ""), 99))
                 print(f"解析成功！モデル [{model_name}] を使用しました。")
                 return analyzed
@@ -229,7 +276,8 @@ def build_fixed_html(analyzed_papers, original_papers, date_str, archive_list, i
         orig_data = id_to_orig.get(paper_id, {})
         
         pmid = orig_data.get("pmid", "")
-        pubmed_url = f"[https://pubmed.ncbi.nlm.nih.gov/](https://pubmed.ncbi.nlm.nih.gov/){pmid}/" if pmid else "#"
+        # 正確なPubMed URL表記 (マークダウン混入なし)
+        pubmed_url = f"https://pubmed.ncbi.nlm.nih.gov/{pmid}" if pmid else "#"
         
         journal = orig_data.get("journal", "")
         author = orig_data.get("author", "")
@@ -271,7 +319,7 @@ def build_fixed_html(analyzed_papers, original_papers, date_str, archive_list, i
     <meta property="og:title" content="今週の胆膵疾患研究ハイライト">
     <meta property="og:description" content="主要誌から厳選した胆膵領域の最新臨床研究・一文要約サマリー。">
     <meta property="og:type" content="website">
-    <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='[http://www.w3.org/2000/svg'%20viewBox='0%200%20100%20100'%3E%3Ctext%20y='.9em'%20font-size='90'%3E%F0%9F%94%AC%3C/text%3E%3C/svg%3E](http://www.w3.org/2000/svg'%20viewBox='0%200%20100%20100'%3E%3Ctext%20y='.9em'%20font-size='90'%3E%F0%9F%94%AC%3C/text%3E%3C/svg%3E)">
+    <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20100%20100'%3E%3Ctext%20y='.9em'%20font-size='90'%3E%F0%9F%94%AC%3C/text%3E%3C/svg%3E">
     <style>
         :root {{
             --bg-color: #f5f5f7;
@@ -501,7 +549,7 @@ if __name__ == "__main__":
     date_display_str = today.strftime("%Y年%m月%d日週")
     date_file_str = today.strftime("%Y-%m-%d")
     
-    print(f"[{date_display_str}] 対象誌からの臨床研究論文アーカイブの抽出を開始します...")
+    print(f"[{date_display_str}] 対象36誌からの臨床研究論文アーカイブの抽出を開始します...")
     
     papers = fetch_pubmed_papers()
     
