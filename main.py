@@ -9,7 +9,7 @@ import xml.etree.ElementTree as ET
 from google import genai
 
 # ----------------------------------------------------
-# 対象36誌の指定リスト（検索用および照合用）
+# 対象33誌の厳選リスト（検索用）
 # ----------------------------------------------------
 TARGET_JOURNALS = [
     "N Engl J Med", "Lancet", "Journal of Hepatology",
@@ -28,8 +28,7 @@ TARGET_JOURNALS = [
     "Liver Transplantation", "Hepatology Research",
     "Digestive Endoscopy",
     "Journal of Gastroenterology and Hepatology",
-    "HPB", "BMC Gastroenterology", "Digestive Diseases and Sciences",
-    "Journal of Hepato-Biliary-Pancreatic Sciences", "Pancreas"
+    "HPB", "Pancreas"
 ]
 
 # 完全一致照合用の拡張セット (小文字化・表記ゆれ網羅)
@@ -66,9 +65,6 @@ EXACT_TARGET_JOURNALS = {
     "digestive endoscopy", "dig endosc",
     "journal of gastroenterology and hepatology", "j gastroenterol hepatol",
     "hpb", "hpb (oxford)", "hpb : the official journal of the international hepato pancreato biliary association",
-    "bmc gastroenterology", "bmc gastroenterol",
-    "digestive diseases and sciences", "dig dis sci",
-    "journal of hepato-biliary-pancreatic sciences", "j hepatobiliary pancreat sci",
     "pancreas"
 }
 
@@ -82,7 +78,7 @@ CATEGORY_ORDER = {
 }
 
 # ----------------------------------------------------
-# 1. PubMedから「指定36誌」「指定7日間」の論文を取得 (POST方式)
+# 1. PubMedから「指定33誌」「指定7日間」の論文を取得 (POST方式)
 # ----------------------------------------------------
 def fetch_pubmed_papers():
     base_url = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils"
@@ -91,7 +87,7 @@ def fetch_pubmed_papers():
     # 胆膵領域のキーワード
     term_keywords = '("pancreatitis"[Title/Abstract] OR "pancreatic cancer"[Title/Abstract] OR "pancreatic ductal adenocarcinoma"[Title/Abstract] OR "PDAC"[Title/Abstract] OR "pancreatic carcinoma"[Title/Abstract] OR "pancreatic neuroendocrine tumor"[Title/Abstract] OR "PanNET"[Title/Abstract] OR "IPMN"[Title/Abstract] OR "intraductal papillary mucinous neoplasm"[Title/Abstract] OR "MCN"[Title/Abstract] OR "mucinous cystic neoplasm"[Title/Abstract] OR "SCN"[Title/Abstract] OR "serous cystic neoplasm"[Title/Abstract] OR "serous cystadenoma"[Title/Abstract] OR "pancreatic cyst"[Title/Abstract] OR "pancreatic cystic"[Title/Abstract] OR "autoimmune pancreatitis"[Title/Abstract] OR "AIP"[Title/Abstract] OR "pancreatic fistula"[Title/Abstract] OR "POPF"[Title/Abstract] OR "postoperative pancreatic fistula"[Title/Abstract] OR "pancreatic duct stricture"[Title/Abstract] OR "biliary"[Title/Abstract] OR "cholangiocarcinoma"[Title/Abstract] OR "biliary tract cancer"[Title/Abstract] OR "gallbladder cancer"[Title/Abstract] OR "gallbladder carcinoma"[Title/Abstract] OR "gallbladder disease"[Title/Abstract] OR "cholangitis"[Title/Abstract] OR "cholecystitis"[Title/Abstract] OR "choledocholithiasis"[Title/Abstract] OR "common bile duct stones"[Title/Abstract] OR "gallstone"[Title/Abstract] OR "PSC"[Title/Abstract] OR "primary sclerosing cholangitis"[Title/Abstract] OR "IgG4-related sclerosing cholangitis"[Title/Abstract] OR "choledochal cyst"[Title/Abstract] OR "biliary stricture"[Title/Abstract] OR "ampullary carcinoma"[Title/Abstract] OR "ampullary cancer"[Title/Abstract] OR "cancer of the ampulla of vater"[Title/Abstract] OR "ampullary adenoma"[Title/Abstract] OR "papillary carcinoma"[Title/Abstract] OR "papillary adenoma"[Title/Abstract] OR "papillary tumor"[Title/Abstract] OR "papilla of vater"[Title/Abstract] OR "papillectomy"[Title/Abstract] OR "endoscopic papillectomy"[Title/Abstract] OR "ERCP"[Title/Abstract] OR "endoscopic retrograde cholangiopancreatography"[Title/Abstract] OR "EUS"[Title/Abstract] OR "endoscopic ultrasound"[Title/Abstract] OR "endoscopic ultrasonography"[Title/Abstract] OR "FNA"[Title/Abstract] OR "fine needle aspiration"[Title/Abstract] OR "fine-needle aspiration"[Title/Abstract] OR "FNB"[Title/Abstract] OR "fine needle biopsy"[Title/Abstract] OR "fine-needle biopsy"[Title/Abstract] OR "EUS-TA"[Title/Abstract] OR "tissue acquisition"[Title/Abstract] OR "EUS-guided"[Title/Abstract] OR "sphincterotomy"[Title/Abstract] OR "EST"[Title/Abstract] OR "endoscopic sphincterotomy"[Title/Abstract] OR "EPBD"[Title/Abstract] OR "endoscopic papillary balloon dilation"[Title/Abstract] OR "EPLBD"[Title/Abstract] OR "endoscopic papillary large balloon dilation"[Title/Abstract] OR "cholangioscopy"[Title/Abstract] OR "pancreatoscopy"[Title/Abstract] OR "biliary stent"[Title/Abstract] OR "biliary stenting"[Title/Abstract] OR "pancreatic stent"[Title/Abstract] OR "pancreatic stenting"[Title/Abstract] OR "biliary drainage"[Title/Abstract] OR "pancreatic drainage"[Title/Abstract])'
     
-    # 対象36誌の明確なフィルター（esearch時点で絞り込む）
+    # 対象誌の明確なフィルター（esearch時点で事前絞り込み）
     journals_query = ' OR '.join([f'"{j}"[Journal]' for j in TARGET_JOURNALS])
     journal_filter = f'AND ({journals_query})'
     
@@ -229,7 +225,7 @@ def analyze_papers_with_gemini(papers):
                 )
                 raw_text = response.text.strip()
                 
-                # 正規表現による堅牢なJSON配列抽出
+                # 正規表現によるJSON配列抽出
                 json_match = re.search(r'\[.*\]', raw_text, re.DOTALL)
                 if json_match:
                     raw_text = json_match.group(0)
@@ -276,7 +272,7 @@ def build_fixed_html(analyzed_papers, original_papers, date_str, archive_list, i
         orig_data = id_to_orig.get(paper_id, {})
         
         pmid = orig_data.get("pmid", "")
-        # 正確なPubMed URL表記 (マークダウン混入なし)
+        # ご指定のURL表記 (マークダウン混入なし)
         pubmed_url = f"https://pubmed.ncbi.nlm.nih.gov/{pmid}" if pmid else "#"
         
         journal = orig_data.get("journal", "")
@@ -549,7 +545,7 @@ if __name__ == "__main__":
     date_display_str = today.strftime("%Y年%m月%d日週")
     date_file_str = today.strftime("%Y-%m-%d")
     
-    print(f"[{date_display_str}] 対象36誌からの臨床研究論文アーカイブの抽出を開始します...")
+    print(f"[{date_display_str}] 対象33誌からの臨床研究論文アーカイブの抽出を開始します...")
     
     papers = fetch_pubmed_papers()
     
