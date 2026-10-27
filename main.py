@@ -9,7 +9,7 @@ import xml.etree.ElementTree as ET
 from google import genai
 
 # ----------------------------------------------------
-# 対象33誌の厳選リスト（検索用）
+# 対象33誌の厳選リスト（Web表示用きれいな名称）
 # ----------------------------------------------------
 TARGET_JOURNALS = [
     "N Engl J Med", "Lancet", "Journal of Hepatology",
@@ -120,12 +120,21 @@ def fetch_pubmed_papers():
         
         journal_candidates = {journal_title.strip().lower(), iso_abbr.strip().lower(), medline_ta.strip().lower()}
         
-        # 厳密な照合判定 (指定外誌の混入を完全にシャットアウト)
+        # 厳密な照合判定
         is_target = bool(journal_candidates.intersection(EXACT_TARGET_JOURNALS))
         if not is_target:
             continue
 
-        display_journal = journal_title if journal_title else medline_ta
+        # ★表示名の正規化処理（長い副題や ... [et al.] を消して TARGET_JOURNALS のきれいな表記に統一）
+        raw_journal = journal_title if journal_title else medline_ta
+        clean_base = raw_journal.split(":")[0].split("...")[0].strip()
+        
+        display_journal = clean_base
+        for target in TARGET_JOURNALS:
+            if target.lower() == clean_base.lower() or target.lower() in raw_journal.lower():
+                display_journal = target
+                break
+
         pmid = article.findtext(".//PMID") or ""
         title = article.findtext(".//ArticleTitle") or ""
         
@@ -272,7 +281,6 @@ def build_fixed_html(analyzed_papers, original_papers, date_str, archive_list, i
         orig_data = id_to_orig.get(paper_id, {})
         
         pmid = orig_data.get("pmid", "")
-        # ご指定のURL表記 (マークダウン混入なし)
         pubmed_url = f"https://pubmed.ncbi.nlm.nih.gov/{pmid}" if pmid else "#"
         
         journal = orig_data.get("journal", "")
