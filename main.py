@@ -9,7 +9,7 @@ import xml.etree.ElementTree as ET
 from google import genai
 
 # ----------------------------------------------------
-# 対象33誌の厳選リスト（Web表示用きれいな名称）
+# 対象29誌の厳選リスト（Web表示用きれいな名称）
 # ----------------------------------------------------
 TARGET_JOURNALS = [
     "N Engl J Med", "Lancet", "Journal of Hepatology",
@@ -24,10 +24,8 @@ TARGET_JOURNALS = [
     "Journal of Gastroenterology", 
     "Digestive and Liver Disease", 
     "Endoscopic Ultrasound", "Gut and Liver", 
-    "Pancreatology", "Hepatobiliary & Pancreatic Diseases International",
-    "Liver Transplantation", "Hepatology Research",
+    "Pancreatology", 
     "Digestive Endoscopy",
-    "Journal of Gastroenterology and Hepatology",
     "HPB", "Pancreas"
 ]
 
@@ -59,11 +57,7 @@ EXACT_TARGET_JOURNALS = {
     "endoscopic ultrasound", "endosc ultrasound",
     "gut and liver", "gut liver",
     "pancreatology",
-    "hepatobiliary & pancreatic diseases international", "hepatobiliary pancreat dis int",
-    "liver transplantation", "liver transpl",
-    "hepatology research", "hepatol res",
     "digestive endoscopy", "dig endosc",
-    "journal of gastroenterology and hepatology", "j gastroenterol hepatol",
     "hpb", "hpb (oxford)", "hpb : the official journal of the international hepato pancreato biliary association",
     "pancreas"
 }
@@ -78,7 +72,7 @@ CATEGORY_ORDER = {
 }
 
 # ----------------------------------------------------
-# 1. PubMedから「指定33誌」「指定7日間」の論文を取得 (POST方式)
+# 1. PubMedから「指定29誌」「指定7日間」の論文を取得 (POST方式)
 # ----------------------------------------------------
 def fetch_pubmed_papers():
     base_url = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils"
@@ -125,13 +119,12 @@ def fetch_pubmed_papers():
         if not is_target:
             continue
 
-        # ★表示名の正規化処理（長い副題や ... [et al.] を消して TARGET_JOURNALS のきれいな表記に統一）
+        # 表示名の正規化処理（文字数が長いジャーナル名から順に優先マッチング）
         raw_journal = journal_title if journal_title else medline_ta
-        clean_base = raw_journal.split(":")[0].split("...")[0].strip()
+        display_journal = raw_journal.split(":")[0].split("...")[0].strip()
         
-        display_journal = clean_base
-        for target in TARGET_JOURNALS:
-            if target.lower() == clean_base.lower() or target.lower() in raw_journal.lower():
+        for target in sorted(TARGET_JOURNALS, key=len, reverse=True):
+            if target.lower() in raw_journal.lower():
                 display_journal = target
                 break
 
@@ -318,10 +311,10 @@ def build_fixed_html(analyzed_papers, original_papers, date_str, archive_list, i
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>今週の胆膵疾患研究ハイライト | Pancreatobiliary Weekly Digest</title>
-    <meta name="description" content="主要誌から厳選した胆膵疾患・胆膵内視鏡領域の最新臨床研究（Original Article）ウィークリーダッシュボード。">
-    <meta property="og:title" content="今週の胆膵疾患研究ハイライト">
-    <meta property="og:description" content="主要誌から厳選した胆膵領域の最新臨床研究・一文要約サマリー。">
+    <title>胆膵ジャーナルウォッチ Weekly | 主要29誌の最新臨床研究ダイジェスト</title>
+    <meta name="description" content="主要29誌から厳選した胆膵疾患・胆膵内視鏡領域の最新臨床研究（Original Article）ウィークリーダイッシュボード。">
+    <meta property="og:title" content="胆膵ジャーナルウォッチ Weekly">
+    <meta property="og:description" content="主要29誌から厳選した胆膵領域の最新臨床研究・要約ダイジェスト。">
     <meta property="og:type" content="website">
     <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20100%20100'%3E%3Ctext%20y='.9em'%20font-size='90'%3E%F0%9F%94%AC%3C/text%3E%3C/svg%3E">
     <style>
@@ -466,9 +459,9 @@ def build_fixed_html(analyzed_papers, original_papers, date_str, archive_list, i
         <div class="header-container">
             <div>
                 <a href="{top_link}" class="site-title-link">
-                    <div class="site-title">今週の胆膵疾患研究ハイライト</div>
+                    <div class="site-title">胆膵ジャーナルウォッチ Weekly</div>
                 </a>
-                <div class="sub-title">Pancreatobiliary Weekly Digest ({date_str})</div>
+                <div class="sub-title">主要29誌から厳選した最新臨床研究ダイジェスト ({date_str})</div>
             </div>
             <select onchange="location.href=this.value" class="archive-select">
                 {options_html}
@@ -490,7 +483,7 @@ def build_fixed_html(analyzed_papers, original_papers, date_str, archive_list, i
     </main>
 
     <footer>
-        <p>&copy; 2026 Pancreatobiliary Weekly Digest. All rights reserved.</p>
+        <p>&copy; 2026 Pancreatobiliary Journal Watch Weekly. All rights reserved.</p>
     </footer>
 
     <script>
@@ -553,7 +546,7 @@ if __name__ == "__main__":
     date_display_str = today.strftime("%Y年%m月%d日週")
     date_file_str = today.strftime("%Y-%m-%d")
     
-    print(f"[{date_display_str}] 対象33誌からの臨床研究論文アーカイブの抽出を開始します...")
+    print(f"[{date_display_str}] 対象29誌からの臨床研究論文アーカイブの抽出を開始します...")
     
     papers = fetch_pubmed_papers()
     
