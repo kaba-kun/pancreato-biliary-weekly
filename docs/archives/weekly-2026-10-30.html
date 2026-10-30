@@ -1,0 +1,870 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>胆膵ジャーナルウォッチ Weekly | 主要29誌の最新臨床研究ダイジェスト</title>
+    <meta name="description" content="主要29誌から厳選した胆膵疾患・胆膵内視鏡領域の最新臨床研究（Original Article）ウィークリーダッシュボード。">
+    <meta property="og:title" content="胆膵ジャーナルウォッチ Weekly">
+    <meta property="og:description" content="主要29誌から厳選した胆膵領域の最新臨床研究・要約ダイジェスト。">
+    <meta property="og:type" content="website">
+    <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20100%20100'%3E%3Ctext%20y='.9em'%20font-size='90'%3E%F0%9F%94%AC%3C/text%3E%3C/svg%3E">
+    <style>
+        :root {
+            --bg-color: #f5f5f7;
+            --text-main: #1d1d1f;
+            --text-sub: #86868b;
+            --card-bg: #ffffff;
+            --accent: #0066cc;
+            --border-color: rgba(0, 0, 0, 0.08);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Inter", sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+            padding-bottom: 40px;
+        }
+        
+        header {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 1px solid var(--border-color);
+            padding: 16px 0 12px;
+        }
+        .header-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 0 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .site-title-link {
+            text-decoration: none;
+            color: inherit;
+        }
+        .site-title-link:hover .site-title {
+            color: var(--accent);
+        }
+        .site-title { font-size: 20px; font-weight: 700; letter-spacing: -0.02em; color: var(--text-main); transition: color 0.2s ease; }
+        .sub-title { font-size: 13px; color: var(--text-sub); margin-top: 2px; }
+        .archive-select {
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background: #fff;
+            font-size: 13px;
+            cursor: pointer;
+            color: var(--text-main);
+        }
+        
+        nav.tabs-nav {
+            max-width: 1000px;
+            margin: 12px auto 0;
+            padding: 0 24px;
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            white-space: nowrap;
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        nav.tabs-nav::-webkit-scrollbar {
+            display: none;
+        }
+        .tab-btn {
+            padding: 8px 16px;
+            border-radius: 20px;
+            border: none;
+            background: #e5e5ea;
+            color: var(--text-main);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s ease, color 0.2s ease;
+        }
+        .tab-btn.active { background: var(--accent); color: #fff; }
+        
+        main { max-width: 1000px; margin: 24px auto; padding: 0 24px; }
+        
+        .paper-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+            border: 1px solid var(--border-color);
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        .paper-card:hover {
+            border-color: rgba(0, 102, 204, 0.3);
+            box-shadow: 0 6px 24px rgba(0,0,0,0.06);
+        }
+        
+        .card-header { display: flex; gap: 8px; margin-bottom: 12px; align-items: center; }
+        .badge { font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 6px; text-transform: uppercase; }
+        .highlight-badge { background: #fff3dc; color: #b45309; border: 1px solid #fde68a; }
+        .journal-badge { background: #f1f5f9; color: #475569; }
+        .title-ja { font-size: 18px; font-weight: 700; margin-bottom: 6px; color: #0f172a; line-height: 1.35; }
+        .title-en { font-size: 13px; color: var(--text-sub); margin-bottom: 14px; font-style: italic; }
+        .meta-row { display: flex; gap: 16px; font-size: 12px; color: var(--text-sub); margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
+        
+        .pmid-link {
+            color: var(--accent);
+            font-weight: 600;
+            background: #eff6ff;
+            padding: 3px 10px;
+            border-radius: 6px;
+            text-decoration: none;
+            transition: background 0.2s ease;
+        }
+        .pmid-link:hover {
+            background: #dbeafe;
+            text-decoration: underline;
+        }
+
+        .summary-box { background: #f8fafc; border-radius: 10px; padding: 14px; font-size: 13.5px; border: 1px solid #f1f5f9; }
+        .summary-item { margin-bottom: 6px; color: #334155; }
+        .summary-item:last-child { margin-bottom: 0; }
+        .summary-item strong { color: #0f172a; }
+
+        footer {
+            max-width: 1000px;
+            margin: 40px auto 0;
+            padding: 24px;
+            text-align: center;
+            border-top: 1px solid var(--border-color);
+            color: var(--text-sub);
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-container">
+            <div>
+                <a href="../index.html" class="site-title-link">
+                    <div class="site-title">胆膵ジャーナルウォッチ Weekly</div>
+                </a>
+                <div class="sub-title">主要29誌から厳選した最新臨床研究ダイジェスト (2026年10月30日週)</div>
+            </div>
+            <select onchange="location.href=this.value" class="archive-select">
+                <option value="../index.html">最新号 (最新)</option>
+<option value="weekly-2026-10-30.html">2026-10-30</option>
+            </select>
+        </div>
+        <nav class="tabs-nav">
+            <button class="tab-btn active" onclick="filterCategory('all', this)">すべて</button>
+            <button class="tab-btn" onclick="filterCategory('highlight', this)">⭐ TOPハイライト</button>
+            <button class="tab-btn" onclick="filterCategory('endo', this)">1. 胆膵内視鏡</button>
+            <button class="tab-btn" onclick="filterCategory('pancreas-benign', this)">2. 膵良性疾患</button>
+            <button class="tab-btn" onclick="filterCategory('biliary-benign', this)">3. 胆道良性疾患</button>
+            <button class="tab-btn" onclick="filterCategory('cancer', this)">4. 膵・胆道悪性疾患</button>
+            <button class="tab-btn" onclick="filterCategory('case-report', this)">5. 症例報告</button>
+        </nav>
+    </header>
+
+    <main id="cards-container">
+        
+        <article class="paper-card endo highlight">
+            <div class="card-header">
+                <span class="badge highlight-badge">⭐ TOP HIGHLIGHT</span>
+                <span class="badge journal-badge">Endoscopy</span>
+            </div>
+            <h2 class="title-ja">良性および悪性胆道狭窄の管理に関する欧州消化器内視鏡学会（ESGE）ガイドライン</h2>
+            <p class="title-en">Biliary stricture management: European Society of Gastrointestinal Endoscopy (ESGE) Guideline.</p>
+            <div class="meta-row">
+                <span>👤 Lemmers A et al.</span>
+                <span>📅 2026-Nov</span>
+                <a href="https://pubmed.ncbi.nlm.nih.gov/42692059" target="_blank" rel="noopener noreferrer" class="pmid-link">PMID: 42692059 ↗</a>
+            </div>
+            <div class="summary-box">
+                <div class="summary-item"><strong>研究デザイン:</strong> 診療ガイドライン（欧州消化器内視鏡学会）</div>
+                <div class="summary-item"><strong>主要結果:</strong> 良性狭窄：胆摘後には多本数プラスチックステント（MPS）またはFCSEMS、慢性膵炎にはFCSEMS（6-12か月）、PSCにはバルーン拡張単独（ステント留置は推奨せず）。悪性狭窄：遠位部術前/術後補助には10mm SEMS推奨。切除不能肝門部（Bismuth III-IV）にはERCPまたはEUS-BD併用を推奨し、非萎縮肝体積の50%（理想は70%以上）のドレナージを推奨。ERCP不成功例にはPTBDよりEUS-BDを推奨した。</div>
+                <div class="summary-item"><strong>臨床的要点:</strong> 良性から切除不能悪性（遠位・肝門部）狭窄、さらにはERCP困難例に対するEUS-BDの優先付けまで、最新のエビデンスを網羅した内視鏡的胆道マネジメントの世界標準指針である。</div>
+            </div>
+        </article>
+        
+        <article class="paper-card biliary-benign highlight">
+            <div class="card-header">
+                <span class="badge highlight-badge">⭐ TOP HIGHLIGHT</span>
+                <span class="badge journal-badge">Hepatology</span>
+            </div>
+            <h2 class="title-ja">原発性胆汁性胆管炎（PBC）に対するデュアルPPARα/γ受容体作動薬Saroglitazarの第2b/3相適応的RCT</h2>
+            <p class="title-en">A phase 2b/3 trial of saroglitazar in primary biliary cholangitis.</p>
+            <div class="meta-row">
+                <span>👤 Vuppalanchi R et al.</span>
+                <span>📅 2026-Oct-26</span>
+                <a href="https://pubmed.ncbi.nlm.nih.gov/42929426" target="_blank" rel="noopener noreferrer" class="pmid-link">PMID: 42929426 ↗</a>
+            </div>
+            <div class="summary-box">
+                <div class="summary-item"><strong>研究デザイン:</strong> 多施設二重盲検ランダム化比較試験（第2b/3相） / 148例（第3相）</div>
+                <div class="summary-item"><strong>主要結果:</strong> UDCA不応・不耐のPBC患者において、第3相試験でSaroglitazar群（0.97mg）はプラセボ群と比較して52週時の生化学的奏効率が有意に高かった（56.7% vs. 9.8%、差48.0%、p<0.001）。ALP正常化率も8.2% vs. 0%（p=0.016）と有意に優れていた。有害事象発現率は両群で同等（81.1% vs. 90.5%）であり、良好な忍容性を示した。</div>
+                <div class="summary-item"><strong>臨床的要点:</strong> SaroglitazarはUDCA治療抵抗性のPBCに対する新規治療選択肢として、顕著なALP改善効果と良好な忍容性を52週間にわたり証明した。</div>
+            </div>
+        </article>
+        
+        <article class="paper-card biliary-benign highlight">
+            <div class="card-header">
+                <span class="badge highlight-badge">⭐ TOP HIGHLIGHT</span>
+                <span class="badge journal-badge">Gastroenterology</span>
+            </div>
+            <h2 class="title-ja">原発性胆汁性胆管炎（PBC）の管理に関するAGA/AASLD合同臨床実践ガイドライン</h2>
+            <p class="title-en">AGA/AASLD Clinical Practice Guideline on Management of Primary Biliary Cholangitis.</p>
+            <div class="meta-row">
+                <span>👤 Levy C et al.</span>
+                <span>📅 2026-Nov</span>
+                <a href="https://pubmed.ncbi.nlm.nih.gov/42914292" target="_blank" rel="noopener noreferrer" class="pmid-link">PMID: 42914292 ↗</a>
+            </div>
+            <div class="summary-box">
+                <div class="summary-item"><strong>研究デザイン:</strong> 診療ガイドライン（GRADEシステムに基づく系統的レビュー）</div>
+                <div class="summary-item"><strong>主要結果:</strong> 6つの臨床課題に対して推奨を策定。(1)AMA陰性疑い例に対するPBC特異的抗核抗体の測定、(2)第1選択薬としてのUDCA推奨、(3)予後予測のための肝硬度測定（LSM）、(4)UDCA不応・不耐例へのPPAR作動薬の導入、(5)中等度〜重度掻痒症に対するLinerixibatの使用、(6)肝移植後の再発予防目的でのUDCA予防投与を推奨した。</div>
+                <div class="summary-item"><strong>臨床的要点:</strong> 米国消化器・肝臓学会合同による最新指針であり、早期診断からUDCA治療最適化、PPAR作動薬による2次治療、非侵襲的線維化評価、難治性掻痒症への新規治療薬までを網羅した実践的基準である。</div>
+            </div>
+        </article>
+        
+        <article class="paper-card cancer highlight">
+            <div class="card-header">
+                <span class="badge highlight-badge">⭐ TOP HIGHLIGHT</span>
+                <span class="badge journal-badge">Lancet</span>
+            </div>
+            <h2 class="title-ja">切除可能・境界切除可能膵癌に対する術前化学療法としてのPAXG療法 vs mFOLFIRINOX療法：第3相無作為化比較試験（PACT-21 CASSANDRA）第1次解析</h2>
+            <p class="title-en">Preoperative mFOLFIRINOX versus PAXG for stage I-III resectable and borderline resectable pancreatic ductal adenocarcinoma (PACT-21 CASSANDRA): results of the first randomisation analysis of a randomised, open-label, 2 × 2 factorial phase 3 trial.</p>
+            <div class="meta-row">
+                <span>👤 Reni M et al.</span>
+                <span>📅 2026-Dec-20</span>
+                <a href="https://pubmed.ncbi.nlm.nih.gov/41275879" target="_blank" rel="noopener noreferrer" class="pmid-link">PMID: 41275879 ↗</a>
+            </div>
+            <div class="summary-box">
+                <div class="summary-item"><strong>研究デザイン:</strong> 多施設共同非盲検ランダム化比較第3相試験（2×2要因配置） / 260例（PAXG: 132例、mFOLFIRINOX: 128例）</div>
+                <div class="summary-item"><strong>主要結果:</strong> 切除可能または境界切除可能膵癌において、術前PAXG療法（シスプラチン＋nab-パクリタキセル＋カペシタビン＋ゲムシタビン）は標準の術前mFOLFIRINOX療法と比較して、主要評価項目である無イベント生存期間（EFS）中央値を10.2か月から16.0か月へと有意に延長した（HR 0.63, 95%CI 0.47-0.84, p=0.0018）。Grade 3以上の有害事象発生率は両群同等であった（66% vs 61%）。</div>
+                <div class="summary-item"><strong>臨床的要点:</strong> 切除可能および境界切除可能膵癌に対する術前PAXG療法は、mFOLFIRINOXを凌駕する無イベント生存期間の延長を示し、新たな標準的術前化学療法の選択肢として確立された。</div>
+            </div>
+        </article>
+        
+        <article class="paper-card endo">
+            <div class="card-header">
+                
+                <span class="badge journal-badge">Alimentary Pharmacology & Therapeutics</span>
+            </div>
+            <h2 class="title-ja">肝硬変に伴う異所性静脈瘤出血の管理と臨床転帰：系統的レビューおよびプール解析</h2>
+            <p class="title-en">Management and Outcomes of Bleeding Ectopic Varices in Patients With Liver Cirrhosis: A Systematic Review and Pooled Analysis.</p>
+            <div class="meta-row">
+                <span>👤 Zhu A et al.</span>
+                <span>📅 2026-Oct-27</span>
+                <a href="https://pubmed.ncbi.nlm.nih.gov/42946657" target="_blank" rel="noopener noreferrer" class="pmid-link">PMID: 42946657 ↗</a>
+            </div>
+            <div class="summary-box">
+                <div class="summary-item"><strong>研究デザイン:</strong> 系統的レビュー・プール解析 / 44研究・458例</div>
+                <div class="summary-item"><strong>主要結果:</strong> 好発部位は十二指腸（27.7%）、直腸（27.3%）、ストーマ部（23.1%）。直腸静脈瘤出血に対する内視鏡的硬化療法は結紮術（EVL）より再出血率が低かった（3.3% vs. 33.3%）。全異所性静脈瘤において、TIPS＋塞栓術の併用はTIPS単独より再出血率が低値であった。全死亡率は小腸25.0%、直腸42.9%、ストーマ部66.6%であった。</div>
+                <div class="summary-item"><strong>臨床的要点:</strong> 異所性静脈瘤出血は再出血率と死亡率が極めて高く、直腸病変への硬化療法やTIPS＋塞栓術併用など、病変部位に応じた集学的・個別化治療の早期介入が不可欠である。</div>
+            </div>
+        </article>
+        
+        <article class="paper-card endo">
+            <div class="card-header">
+                
+                <span class="badge journal-badge">Endoscopy</span>
+            </div>
+            <h2 class="title-ja">切除不能肝門部胆管癌に対する反復胆管内ラジオ波焼灼術（RFA）の生存期間に及ぼす影響</h2>
+            <p class="title-en">Impact of repeated endobiliary radiofrequency ablation on survival in unresectable perihilar cholangiocarcinoma.</p>
+            <div class="meta-row">
+                <span>👤 Lee Y et al.</span>
+                <span>📅 2026-Oct-29</span>
+                <a href="https://pubmed.ncbi.nlm.nih.gov/42826731" target="_blank" rel="noopener noreferrer" class="pmid-link">PMID: 42826731 ↗</a>
+            </div>
+            <div class="summary-box">
+                <div class="summary-item"><strong>研究デザイン:</strong> 単施設後方視コホート研究 / 475例（単回RFA: 90例、複数回RFA: 50例、RFAなし: 335例）</div>
+                <div class="summary-item"><strong>主要結果:</strong> 内視鏡的胆道ドレナージ後7日以内のRFA施行は6か月死亡リスクの有意な低下と関連した（調整ハザード比 [aHR] 0.34, 95%CI 0.16-0.70）。しかし生存利益はドレナージ後最初の3か月に集中しており、長期的な生存延長効果は減弱した。また、RFA群では非腫瘍性（ステント閉塞等の）胆道閉塞イベントの頻度が高かった。</div>
+                <div class="summary-item"><strong>臨床的要点:</strong> 切除不能肝門部胆管癌に対する胆管内RFAは早期の死亡率低減に寄与する可能性があるが、その効果は早期に限定的であり、手技後の良性胆道閉塞やステントトラブルの増加に留意した厳重な管理を要する。</div>
+            </div>
+        </article>
+        
+        <article class="paper-card endo">
+            <div class="card-header">
+                
+                <span class="badge journal-badge">Pancreas</span>
+            </div>
+            <h2 class="title-ja">超音波内視鏡（EUS）陰性後に発症した膵癌と通常検出膵癌の臨床転帰比較：多施設コホート研究</h2>
+            <p class="title-en">Outcomes of Post-Endoscopic Ultrasound Pancreatic Cancer Compared to Detected Pancreatic Cancer: A Multicenter Cohort Study.</p>
+            <div class="meta-row">
+                <span>👤 Karna R et al.</span>
+                <span>📅 2026 Nov-Dec 01</span>
+                <a href="https://pubmed.ncbi.nlm.nih.gov/42474439" target="_blank" rel="noopener noreferrer" class="pmid-link">PMID: 42474439 ↗</a>
+            </div>
+            <div class="summary-box">
+                <div class="summary-item"><strong>研究デザイン:</strong> 多施設共同後方視コホート研究（TriNetXデータベース） / 20,828例（PEPC: 1,127例、D-PC: 19,701例）</div>
+                <div class="summary-item"><strong>主要結果:</strong> 膵癌診断前6〜18か月のEUSで腫瘍非検出であったEUS後膵癌（PEPC）は膵癌全体の5.4%を占めた。傾向スコアマッチング後、PEPC群は通常検出群（D-PC）と比較して3年時点での手術施行率（9.53% vs. 22.37%）、化学療法率（33.07% vs. 45.46%）、全死因死亡率（27.90% vs. 33.42%）がいずれも有意に低かった。PEPC死亡予測因子は膵頭部・体部局在等であった。</div>
+                <div class="summary-item"><strong>臨床的要点:</strong> EUSが陰性であっても約5.4%で中間期膵癌（PEPC）が発生する。PEPCは診断遅延や生物学的悪性度の違いにより切除率が低下する懸念があり、EUSの手技的精度管理と高リスク群に対する厳重な追跡が重要である。</div>
+            </div>
+        </article>
+        
+        <article class="paper-card endo">
+            <div class="card-header">
+                
+                <span class="badge journal-badge">Gastrointestinal Endoscopy</span>
+            </div>
+            <h2 class="title-ja">巨大膵嚢胞性病変に対する共焦点レーザー顕微内視鏡（EUS-nCLE）併用の診断能向上効果：国際多施設共同読影試験</h2>
+            <p class="title-en">The impact of confocal endomicroscopy combined with standard diagnostics in evaluating large pancreatic cystic lesions: an international interobserver study (with video).</p>
+            <div class="meta-row">
+                <span>👤 Karaisz F et al.</span>
+                <span>📅 2026-Nov</span>
+                <a href="https://pubmed.ncbi.nlm.nih.gov/42413832" target="_blank" rel="noopener noreferrer" class="pmid-link">PMID: 42413832 ↗</a>
+            </div>
+            <div class="summary-box">
+                <div class="summary-item"><strong>研究デザイン:</strong> 国際多施設前向き読影研究 / 66例（平均径4.3cm）・内視鏡医15名</div>
+                <div class="summary-item"><strong>主要結果:</strong> 標準診断（画像・嚢胞液グルコース解析）にEUS-nCLEを追加することで、粘液性病変の鑑別精度は90%から96%へと有意に上昇した（p<0.01）。病変全体の鑑別正答率も73%から85%に向上（p<0.01）。読影医1人あたりの不要な良性病変切除疑診数が7.2から4.1件（p=0.010）へ、腫瘍性病変の見逃しが4.4から0.7件（p=0.001）へと有意に減少した。</div>
+                <div class="summary-item"><strong>臨床的要点:</strong> 大型の膵嚢胞性病変に対してEUS-nCLEを標準検査（グルコース等）に併用することで、過剰手術を劇的に減らしつつ悪性ポテンシャル病変の診断精度を極めて高度に向上させることが可能である。</div>
+            </div>
+        </article>
+        
+        <article class="paper-card endo">
+            <div class="card-header">
+                
+                <span class="badge journal-badge">Gastrointestinal Endoscopy</span>
+            </div>
+            <h2 class="title-ja">基底径20mm以上の十二指腸乳頭部腫瘍に対する内視鏡的粘膜下層剥離術（ESD）と内視鏡的乳頭切除術（EP）の治療成績比較</h2>
+            <p class="title-en">Endoscopic submucosal dissection versus endoscopic papillectomy for ampullary tumors with a lesion base ≥20 mm: a single-center retrospective comparative study (with videos).</p>
+            <div class="meta-row">
+                <span>👤 Fukuzawa K et al.</span>
+                <span>📅 2026-Nov</span>
+                <a href="https://pubmed.ncbi.nlm.nih.gov/42250774" target="_blank" rel="noopener noreferrer" class="pmid-link">PMID: 42250774 ↗</a>
+            </div>
+            <div class="summary-box">
+                <div class="summary-item"><strong>研究デザイン:</strong> 単施設後方視比較研究 / 72例（ESD: 19例、EP: 53例）</div>
+                <div class="summary-item"><strong>主要結果:</strong> ESD群はEP群より腫瘍径が有意に大きかったにもかかわらず（中央値35mm vs 23mm, p<0.001）、一括切除率（100% vs 71.7%, p=0.007）およびR0切除率（89.5% vs 30.2%, p<0.001）が有意に優れていた。1年以上の追跡で局所遺残はESD群0% vs EP群42.9%（p<0.001）、追加処置率も0% vs 44.9%（p<0.001）であり、有害事象発生率は同等であった（36.8% vs 22.6%, p=0.241）。</div>
+                <div class="summary-item"><strong>臨床的要点:</strong> 基底部が20mmを超える大型乳頭部腫瘍に対し、エキスパートによるESDはEPと比較して圧倒的に高いR0切除率と長期局所制御能を提供し、外科手術を回避し得る強力な選択肢となる。</div>
+            </div>
+        </article>
+        
+        <article class="paper-card endo">
+            <div class="card-header">
+                
+                <span class="badge journal-badge">Journal of Gastroenterology</span>
+            </div>
+            <h2 class="title-ja">膵癌超音波内視鏡下穿刺吸引生検（EUS-FNA）の細胞診洗浄液を用いたDroplet Digital PCRによる迅速KRAS遺伝子変異解析の診断能</h2>
+            <p class="title-en">Diagnostic performance of droplet digital PCR for KRAS mutation analysis in pancreatic cancer cytology specimens.</p>
+            <div class="meta-row">
+                <span>👤 Umemoto K et al.</span>
+                <span>📅 2026-Nov</span>
+                <a href="https://pubmed.ncbi.nlm.nih.gov/42177316" target="_blank" rel="noopener noreferrer" class="pmid-link">PMID: 42177316 ↗</a>
+            </div>
+            <div class="summary-box">
+                <div class="summary-item"><strong>研究デザイン:</strong> 前向き/後方視観察研究 / 38例</div>
+                <div class="summary-item"><strong>主要結果:</strong> EUS-FNA後の穿刺針洗浄液から抽出したDNAを用いたddPCR（感度閾値0.1%）の解析成功率は100%。KRAS変異有無の判定において、組織NGSと細胞診ddPCRの判定一致率は100%（38/38例）であった。最高アレル頻度（VAF）変異の一致率も全体で92%、組織VAF>5%の症例では100%の完全一致を示した。</div>
+                <div class="summary-item"><strong>臨床的要点:</strong> EUS-FNAの残余細胞洗浄液を用いたddPCR解析は、極めて迅速かつ高感度にKRAS変異を検出可能であり、微小生検検体における遺伝子プロファイリングと標的治療決定を大幅に加速させる。</div>
+            </div>
+        </article>
+        
+        <article class="paper-card endo">
+            <div class="card-header">
+                
+                <span class="badge journal-badge">Gastrointestinal Endoscopy</span>
+            </div>
+            <h2 class="title-ja">Niemeier II型胆嚢穿孔を合併した手術不能急性胆嚢炎に対するEC-LAMSを用いた超音波内視鏡下胆嚢ドレナージ（EUS-GBD）の有用性と安全性</h2>
+            <p class="title-en">Feasibility and safety of endoscopic ultrasound-guided gallbladder drainage using an electrocautery-enhanced lumen-apposing metal stent for inoperable acute cholecystitis with Niemeier type II perforation.</p>
+            <div class="meta-row">
+                <span>👤 Shin IS et al.</span>
+                <span>📅 2026-Nov</span>
+                <a href="https://pubmed.ncbi.nlm.nih.gov/42162886" target="_blank" rel="noopener noreferrer" class="pmid-link">PMID: 42162886 ↗</a>
+            </div>
+            <div class="summary-box">
+                <div class="summary-item"><strong>研究デザイン:</strong> 単施設後方視観察研究 / 14例</div>
+                <div class="summary-item"><strong>主要結果:</strong> 限局性胆嚢周囲膿瘍・被包化穿孔を伴うNiemeier II型穿孔例において、EC-LAMSによるEUS-GBDを施行。手技的成功率は100%（14/14）、臨床的成功率は92.9%（13/14）であった。追跡期間中央値314.5日で偶発症は35.7%に認めたが、重篤・致死的なものはなく全例保存的に軽快した。</div>
+                <div class="summary-item"><strong>臨床的要点:</strong> 従来禁忌とみなされてきたNiemeier II型の被包化膿瘍を伴う胆嚢穿孔であっても、手術高リスク例に対してはEC-LAMSを用いたEUS-GBDが安全かつ有効なサルベージ治療選択肢となる。</div>
+            </div>
+        </article>
+        
+        <article class="paper-card endo">
+            <div class="card-header">
+                
+                <span class="badge journal-badge">Gastrointestinal Endoscopy</span>
+            </div>
+            <h2 class="title-ja">胃静脈瘤に対する超音波内視鏡ガイド下コイル・シアノアクリレート塞栓術：流入血管標的法 vs 粘膜下静脈瘤標的法の前向き比較</h2>
+            <p class="title-en">Endoscopic ultrasound-guided coil and glue embolization of gastric varices targeting feeder vessel versus submucosal variceal component: a pragmatic comparative analysis (with videos).</p>
+            <div class="meta-row">
+                <span>👤 Dhar J et al.</span>
+                <span>📅 2026-Nov</span>
+                <a href="https://pubmed.ncbi.nlm.nih.gov/42155686" target="_blank" rel="noopener noreferrer" class="pmid-link">PMID: 42155686 ↗</a>
+            </div>
+            <div class="summary-box">
+                <div class="summary-item"><strong>研究デザイン:</strong> 単施設前向き/後方視比較研究 / 135例（流入路標的 EUS-F: 32例、粘膜下標的 EUS-SVC: 103例）</div>
+                <div class="summary-item"><strong>主要結果:</strong> 流入血管を同定し穿刺塞栓するEUS-F群は、従来の粘膜下静脈瘤を標的とするEUS-SVC群と比較して、コイル使用数（1.94本 vs 2.79本, p=0.001）およびシアノアクリレート注入量（1.88mL vs 2.83mL, p<0.0001）が有意に少なかった。さらに6か月時点での再介入率（3.1% vs 17.5%, p=0.04）および完全閉塞に必要なセッション数（p=0.02）も有意に低かった。</div>
+                <div class="summary-item"><strong>臨床的要点:</strong> EUSで同定可能な胃静脈瘤の流入血管（feeder）を標的とした塞栓術は、塞栓物質の投与量を抑えつつ再発・再介入率を劇的に低下させる優れた低侵襲治療戦略である。</div>
+            </div>
+        </article>
+        
+        <article class="paper-card endo">
+            <div class="card-header">
+                
+                <span class="badge journal-badge">Gastrointestinal Endoscopy</span>
+            </div>
+            <h2 class="title-ja">超音波内視鏡下組織採取（EUS-TA）における「穿刺針路消失（Vanishing Needle Tract）」現象：定義・発生頻度・危険因子の検討</h2>
+            <p class="title-en">"Vanishing needle tract" in endoscopic ultrasound-guided tissue acquisition: definition, incidence, and risk factors in a large single-center cohort.</p>
+            <div class="meta-row">
+                <span>👤 Komori Y et al.</span>
+                <span>📅 2026-Nov</span>
+                <a href="https://pubmed.ncbi.nlm.nih.gov/42155685" target="_blank" rel="noopener noreferrer" class="pmid-link">PMID: 42155685 ↗</a>
+            </div>
+            <div class="summary-box">
+                <div class="summary-item"><strong>研究デザイン:</strong> 単施設後方視コホート研究 / 1630病変（総手技数2094件）</div>
+                <div class="summary-item"><strong>主要結果:</strong> EUS-TA針進行時に超音波走査面から針先が逸脱・消失する現象（VNT）を定義。全体の26.6%でVNTが発生し、その75.8%は時計回り方向のズレであった。多変量解析により、十二指腸球部からの穿刺（p<0.001）、穿刺回数の増加（p<0.001）、フランシーン（Franseen）形状針の使用（p=0.012）が独立した危険因子として同定された。</div>
+                <div class="summary-item"><strong>臨床的要点:</strong> EUS-TA中の針先見失い（VNT）は4件に1件生じる一般的な技術的落とし穴であり、特に十二指腸球部アプローチや多点接触型針の使用時には時計回り方向への逸脱を予測したスコープアングル補正が求められる。</div>
+            </div>
+        </article>
+        
+        <article class="paper-card pancreas-benign">
+            <div class="card-header">
+                
+                <span class="badge journal-badge">Pancreatology</span>
+            </div>
+            <h2 class="title-ja">慢性膵炎においてうつ病と不安症の併存は重症疼痛表現型と関連する</h2>
+            <p class="title-en">Comorbid depression and anxiety are associated with a more severe pain phenotype in chronic pancreatitis.</p>
+            <div class="meta-row">
+                <span>👤 Ailawadi S et al.</span>
+                <span>📅 2026-Oct-24</span>
+                <a href="https://pubmed.ncbi.nlm.nih.gov/42946575" target="_blank" rel="noopener noreferrer" class="pmid-link">PMID: 42946575 ↗</a>
+            </div>
+            <div class="summary-box">
+                <div class="summary-item"><strong>研究デザイン:</strong> 単施設後方視コホート研究 / 1979例</div>
+                <div class="summary-item"><strong>主要結果:</strong> 慢性膵炎患者の33.8%にうつ・不安の併存、10.9%にうつ単独、11.2%に不安単独を認めた。併存群および不安単独群は、慢性疼痛（p<0.001）、入院、救急受診、腹部CT撮影、オピオイド処方（いずれもp<0.01）と有意に関連した。一方で内視鏡的・外科的処置の施行頻度とは関連しなかった。抗うつ薬の調整により医療資源利用やオピオイド処方の関連性は減弱した。</div>
+                <div class="summary-item"><strong>臨床的要点:</strong> 慢性膵炎の難治性疼痛や救急受診・オピオイド依存には精神医学的併存疾患が強く寄与しており、侵襲的処置を追加する前に精神症状のスクリーニングと積極的介入を行うことが重要である。</div>
+            </div>
+        </article>
+        
+        <article class="paper-card pancreas-benign">
+            <div class="card-header">
+                
+                <span class="badge journal-badge">Pancreas</span>
+            </div>
+            <h2 class="title-ja">熱ショックタンパク質70（HSP70）遺伝子の発現変化・遺伝子多型と急性膵炎早期重症度との関連</h2>
+            <p class="title-en">Changes in Activity of Heat Shock Protein-70 Family Genes Is Associated With Early Acute Pancreatitis Severity.</p>
+            <div class="meta-row">
+                <span>👤 Kielaite-Gulla A et al.</span>
+                <span>📅 2026 Nov-Dec 01</span>
+                <a href="https://pubmed.ncbi.nlm.nih.gov/42677951" target="_blank" rel="noopener noreferrer" class="pmid-link">PMID: 42677951 ↗</a>
+            </div>
+            <div class="summary-box">
+                <div class="summary-item"><strong>研究デザイン:</strong> 症例対照研究 / 急性膵炎44例、健常対照47例</div>
+                <div class="summary-item"><strong>主要結果:</strong> HSPA1A発現は急性膵炎群で対照群に比べ2倍低下し、軽症・中等症群で顕著であった。一方、HSPA1L多型（rs2227956）解析において、AG保有者はAA保有者と比較してHSPA1L発現が高く（p=0.014）、特に重症急性膵炎のAGキャリアで最も発現が高値であった（p=0.005）。</div>
+                <div class="summary-item"><strong>臨床的要点:</strong> 白血球におけるHSP70ファミリー遺伝子（HSPA1A/HSPA1L）の発現動態や遺伝子多型は、急性膵炎発症早期における重症化予測バイオマーカーとして臨床応用できる可能性がある。</div>
+            </div>
+        </article>
+        
+        <article class="paper-card pancreas-benign">
+            <div class="card-header">
+                
+                <span class="badge journal-badge">Pancreas</span>
+            </div>
+            <h2 class="title-ja">電子カルテデータを用いた急性膵炎後のICU入室・インスリン依存・外分泌機能不全を予測する追加検査不要のAIモデル</h2>
+            <p class="title-en">AI-Driven Test-Free Prediction of ICU Admission, Insulin Dependence, and Exocrine Dysfunction After Acute Pancreatitis.</p>
+            <div class="meta-row">
+                <span>👤 Chattopadhyay I et al.</span>
+                <span>📅 2026 Nov-Dec 01</span>
+                <a href="https://pubmed.ncbi.nlm.nih.gov/42383454" target="_blank" rel="noopener noreferrer" class="pmid-link">PMID: 42383454 ↗</a>
+            </div>
+            <div class="summary-box">
+                <div class="summary-item"><strong>研究デザイン:</strong> 後方視的AI機械学習モデル開発・検証研究 / 1億6,400万人超の保険請求データベース</div>
+                <div class="summary-item"><strong>主要結果:</strong> 初回急性膵炎診断時の既存EHRコードのみを用いて予測するAI（ZeBRA）を開発。同日ICU入室予測AUCは0.986、1週以内0.933、2週以内0.927を達成。さらに遠隔期合併症である新規膵外分泌機能不全（AUC 0.901-0.913）および新規インスリン依存性糖尿病（AUC 0.861-0.884）についても極めて高い予測能を示した。</div>
+                <div class="summary-item"><strong>臨床的要点:</strong> 特殊な臨床検査を追加することなく、既存のレセプト・電子カルテ情報のみから急性膵炎の超早期悪化と遠隔期続発症を高精度に予測可能であり、個別化されたフォローアップ戦略を立案する強力なツールとなる。</div>
+            </div>
+        </article>
+        
+        <article class="paper-card pancreas-benign">
+            <div class="card-header">
+                
+                <span class="badge journal-badge">Pancreas</span>
+            </div>
+            <h2 class="title-ja">免疫チェックポイント阻害薬投与後の無症候性リパーゼ上昇は膵萎縮を伴う膵障害を反映するが臨床的後遺症は軽微である</h2>
+            <p class="title-en">Asymptomatic Lipase Elevation After Immune Checkpoint Inhibitors Reflects Pancreatic Injury With Volume Loss but Minimal Clinical Sequelae.</p>
+            <div class="meta-row">
+                <span>👤 Chaudhry HA et al.</span>
+                <span>📅 2026 Nov-Dec 01</span>
+                <a href="https://pubmed.ncbi.nlm.nih.gov/42262846" target="_blank" rel="noopener noreferrer" class="pmid-link">PMID: 42262846 ↗</a>
+            </div>
+            <div class="summary-box">
+                <div class="summary-item"><strong>研究デザイン:</strong> 単施設後方視的コホート研究 / 1,146例（膵容積解析: 98例）</div>
+                <div class="summary-item"><strong>主要結果:</strong> 無症候性リパーゼ上昇（ALE）が基準値上限の3倍以上の群では、1-3倍群と比較して画像上の膵炎像（CT 9%、PET 16%）や20%以上の膵容積減少（57% vs 28%, p<0.0001）が高率に認められた。しかし、ALE持続下でICI治療を継続した33例において臨床的な急性膵炎発症や内外分泌不全の後遺症は極めて稀であった。</div>
+                <div class="summary-item"><strong>臨床的要点:</strong> ICI投与後のALEは無症候であっても実際の膵組織障害・容積減少を反映しているが、無症状であればICIを休薬・中止せず安全に治療を継続できる臨床的妥当性が支持される。</div>
+            </div>
+        </article>
+        
+        <article class="paper-card pancreas-benign">
+            <div class="card-header">
+                
+                <span class="badge journal-badge">Journal of Gastroenterology</span>
+            </div>
+            <h2 class="title-ja">1型自己免疫性膵炎（AIP）における10年間の長期臨床経過と予後規定因子：多施設共同後方視的研究</h2>
+            <p class="title-en">A decade of clinical course and prognostic determinants in type 1 autoimmune pancreatitis: insights from a 10-year longitudinal multicenter retrospective study.</p>
+            <div class="meta-row">
+                <span>👤 Miyazawa M et al.</span>
+                <span>📅 2026-Nov</span>
+                <a href="https://pubmed.ncbi.nlm.nih.gov/42185503" target="_blank" rel="noopener noreferrer" class="pmid-link">PMID: 42185503 ↗</a>
+            </div>
+            <div class="summary-box">
+                <div class="summary-item"><strong>研究デザイン:</strong> 多施設後方視コホート研究 / 83例（10年以上追跡）</div>
+                <div class="summary-item"><strong>主要結果:</strong> 累積再発率は1年11.0%、5年38.3%、10年56.9%に達し、ステロイド中止が独立した再発リスクであった。全体のがん発症リスクは一般人口と同等（SIR 1.00）だったが、膵癌は5年以降に上昇傾向（SIR 2.96）を示した。10年経過で血清アルブミン値の生理的老化を超える低下が認められた。ステロイド維持療法は全生存率良好と関連した。</div>
+                <div class="summary-item"><strong>臨床的要点:</strong> 1型AIPは10年で半数以上が再発し、晩期膵癌リスクや栄養・代謝指標の低下が生じるため、ステロイド維持療法の慎重な検討とともに10年以上の長期的・継続的サーベイランスが必須である。</div>
+            </div>
+        </article>
+        
+        <article class="paper-card pancreas-benign">
+            <div class="card-header">
+                
+                <span class="badge journal-badge">Pancreas</span>
+            </div>
+            <h2 class="title-ja">小児および成人における急性胆道性膵炎の治療成績と再入院傾向の全国規模比較解析</h2>
+            <p class="title-en">Comparative Analysis of Outcomes and Readmissions Trends in Adult and Pediatric Acute Biliary Pancreatitis: A Nationwide Analysis.</p>
+            <div class="meta-row">
+                <span>👤 Farooq U et al.</span>
+                <span>📅 2026 Nov-Dec 01</span>
+                <a href="https://pubmed.ncbi.nlm.nih.gov/42172066" target="_blank" rel="noopener noreferrer" class="pmid-link">PMID: 42172066 ↗</a>
+            </div>
+            <div class="summary-box">
+                <div class="summary-item"><strong>研究デザイン:</strong> 全米再入院データベース（NRD）後方視解析 / 194,441例（小児: 2,999例、成人: 191,442例）</div>
+                <div class="summary-item"><strong>主要結果:</strong> 小児群は成人群と比較して全身合併症（敗血症のみ成人が高率 1.72% vs 0.41%）や局所合併症（仮性嚢胞、膵壊死等）、死亡率（0% vs 0.71%）に有意差を認めなかった。初回入院中の胆嚢摘出術（CCY）施行率は小児で高かった。入院中CCYは小児（11.8%→5.6%）・成人（12.0%→4.4%）双方で30日以内再入院率を有意に半減させた（p<0.05）。</div>
+                <div class="summary-item"><strong>臨床的要点:</strong> 急性胆道性膵炎において小児・成人を問わず、初回入院中の待機的胆嚢摘出術は安全に施行可能であり、早期再入院を有意に低減させる極めて重要な標準的介入である。</div>
+            </div>
+        </article>
+        
+        <article class="paper-card biliary-benign">
+            <div class="card-header">
+                
+                <span class="badge journal-badge">Hepatology Communications</span>
+            </div>
+            <h2 class="title-ja">原発性胆汁性胆管炎（PBC）における2次治療以降の臨床・安全性・PROアウトカム：系統的レビュー</h2>
+            <p class="title-en">Clinical, safety, and patient-reported outcomes associated with second-line and later therapies in primary biliary cholangitis: A systematic review.</p>
+            <div class="meta-row">
+                <span>👤 Carbone M et al.</span>
+                <span>📅 2026-Nov-01</span>
+                <a href="https://pubmed.ncbi.nlm.nih.gov/42951925" target="_blank" rel="noopener noreferrer" class="pmid-link">PMID: 42951925 ↗</a>
+            </div>
+            <div class="summary-box">
+                <div class="summary-item"><strong>研究デザイン:</strong> 系統的文献レビュー（SLR） / 44研究（149報）</div>
+                <div class="summary-item"><strong>主要結果:</strong> UDCA不応・不耐のPBCに対する2次治療薬（エラフィブラノル、セルデルパル、ベザフィブラート、オベチコール酸等）の臨床試験を評価。複合生化学的エンドポイントの採用は34%（POISE基準18%）、ALP評価は89%で行われていたが、正常上限値や奏効基準の異質性が高かった。実薬群で高い生化学的奏効が示された一方、プラセボ群の奏効率のばらつきやPRO評価尺度の差異が顕著であった。</div>
+                <div class="summary-item"><strong>臨床的要点:</strong> PBCの2次治療試験はエビデンスが蓄積しているものの、奏効定義や評価スケールが試験間で大きく異なっており、実臨床での薬剤選択や試験間比較を行う際はこれら評価基準の差異に留意が必要である。</div>
+            </div>
+        </article>
+        
+        <article class="paper-card biliary-benign">
+            <div class="card-header">
+                
+                <span class="badge journal-badge">Alimentary Pharmacology & Therapeutics</span>
+            </div>
+            <h2 class="title-ja">胆汁うっ滞性掻痒症に対する現代の治療薬におけるプラセボ効果のメタ解析</h2>
+            <p class="title-en">Meta-Analysis: The Placebo Response in Modern Treatments for Cholestatic Pruritus: A Systematic Review and Meta-Analysis of Randomized Controlled Trials.</p>
+            <div class="meta-row">
+                <span>👤 Silveira IB et al.</span>
+                <span>📅 2026-Nov</span>
+                <a href="https://pubmed.ncbi.nlm.nih.gov/42786733" target="_blank" rel="noopener noreferrer" class="pmid-link">PMID: 42786733 ↗</a>
+            </div>
+            <div class="summary-box">
+                <div class="summary-item"><strong>研究デザイン:</strong> 系統的レビュー・メタ解析 / RCT 13件・548例</div>
+                <div class="summary-item"><strong>主要結果:</strong> IBAT阻害薬またはPPAR作動薬のRCTプラセボ群において、掻痒スコアの標準化平均変化量（SMC）は全体で-0.49、中等度〜重度で-0.57と有意に改善した。プラセボ奏効率は全体で30.0%に達した。NRSでは有意な低下（-1.62）を認めたが、WI-NRSや5-D Itchでは変化が統計学的に有意でないなど、評価尺度による差異が認められた。</div>
+                <div class="summary-item"><strong>臨床的要点:</strong> 胆汁うっ滞性掻痒症の臨床試験では約30%に達する強力なプラセボ効果が存在するため、臨床試験のデザインや日常診療における患者報告アウトカム（PRO）の解釈には慎重な評価が求められる。</div>
+            </div>
+        </article>
+        
+        <article class="paper-card biliary-benign">
+            <div class="card-header">
+                
+                <span class="badge journal-badge">Alimentary Pharmacology & Therapeutics</span>
+            </div>
+            <h2 class="title-ja">原発性硬化性胆管炎（PSC）における掻痒症の頻度、持続性およびQOLへの影響</h2>
+            <p class="title-en">Pruritus Is Frequent and Persistent and Impacts Quality of Life Among Patients With Primary Sclerosing Cholangitis.</p>
+            <div class="meta-row">
+                <span>👤 Dean R et al.</span>
+                <span>📅 2026-Nov</span>
+                <a href="https://pubmed.ncbi.nlm.nih.gov/42608739" target="_blank" rel="noopener noreferrer" class="pmid-link">PMID: 42608739 ↗</a>
+            </div>
+            <div class="summary-box">
+                <div class="summary-item"><strong>研究デザイン:</strong> 前向き縦断コホート研究 / PSC患者群（WI-NRS、5-D Itch、PSC-PRO等の評価）</div>
+                <div class="summary-item"><strong>主要結果:</strong> 中等度〜重度の掻痒症は直近7日間で24%、過去6か月間で38%に認められた。掻痒の重症度は肝硬変合併（p=0.01）、ALP高値（p=0.0001）、総ビリルビン高値（p=0.0006）、低アルブミン血症（p=0.01）、およびIBD合併例における大腸炎活動性（p=0.01）と相関し、SF-36スコア低下と顕著に関連していた。</div>
+                <div class="summary-item"><strong>臨床的要点:</strong> PSCにおいて掻痒症は高頻度かつ持続的に生じてQOLを著しく損なっており、疾患進行や腸管炎症活動性と密接に関わるため、標準化された評価と新規止痒治療の導入が切望される。</div>
+            </div>
+        </article>
+        
+        <article class="paper-card biliary-benign">
+            <div class="card-header">
+                
+                <span class="badge journal-badge">Journal of Gastroenterology</span>
+            </div>
+            <h2 class="title-ja">原発性硬化性胆管炎（PSC）におけるウルソデオキシコール酸（UDCA）の長期予後改善効果：人口ベース大規模コホート研究</h2>
+            <p class="title-en">The longstanding issue of the benefit of ursodeoxycholic acid in primary sclerosing cholangitis: a long-term population-based study.</p>
+            <div class="meta-row">
+                <span>👤 Mol B et al.</span>
+                <span>📅 2026-Nov</span>
+                <a href="https://pubmed.ncbi.nlm.nih.gov/42298049" target="_blank" rel="noopener noreferrer" class="pmid-link">PMID: 42298049 ↗</a>
+            </div>
+            <div class="summary-box">
+                <div class="summary-item"><strong>研究デザイン:</strong> 人口ベース後ろ向き/前向きコホート研究（オランダEpiPSC2） / 527例</div>
+                <div class="summary-item"><strong>主要結果:</strong> UDCA使用を時間依存性変数としてCox比例ハザードモデルで解析。肝移植または全死因死亡エンドポイントに対する調整HRは1.13（95%CI 0.76-1.67）、肝胆道系悪性腫瘍発生エンドポイントに対する調整HRは0.68（95%CI 0.34-1.37）であり、いずれも統計学的有意な予後改善効果は示されなかった。</div>
+                <div class="summary-item"><strong>臨床的要点:</strong> 人口ベースの大規模長期観察研究において、UDCAのルーチン使用がPSC患者の肝移植回避や長期生存率を改善するという明確なエビデンスは得られず、疾患修飾薬としての過信は禁物である。</div>
+            </div>
+        </article>
+        
+        <article class="paper-card cancer">
+            <div class="card-header">
+                
+                <span class="badge journal-badge">Pancreatology</span>
+            </div>
+            <h2 class="title-ja">CTに基づく発生学的コンパートメント分類による膵頭部癌切除後の予後層別化</h2>
+            <p class="title-en">Computed tomography-based embryologic compartment classification provides prognostic stratification in pancreatic head ductal adenocarcinoma.</p>
+            <div class="meta-row">
+                <span>👤 Kozono S et al.</span>
+                <span>📅 2026-Oct-28</span>
+                <a href="https://pubmed.ncbi.nlm.nih.gov/42957554" target="_blank" rel="noopener noreferrer" class="pmid-link">PMID: 42957554 ↗</a>
+            </div>
+            <div class="summary-box">
+                <div class="summary-item"><strong>研究デザイン:</strong> 単施設後方視コホート研究 / 173例</div>
+                <div class="summary-item"><strong>主要結果:</strong> 術前造影CTで膵頭部癌を背側限局（DC: 44例）、背側優位（DP: 64例）、腹側優位（VP: 53例）、腹側限局（VC: 12例）に分類。全生存期間（OS）は4群間で有意差を認め（p=0.0078）、DC群の中央値は61.5か月と、非DC群（DP+VP+VC）の25.2か月に比べ有意に良好であった（p=0.0016）。多変量解析でもDC局在は独立した予後良好因子であった（HR 0.546, p=0.0178）。</div>
+                <div class="summary-item"><strong>臨床的要点:</strong> 膵頭部癌のCT発生学的コンパートメント分類（特に背側限局型）は、切除例において極めて強力な術前予後予測バイオマーカーとなり、術前リスク層別化に有用である。</div>
+            </div>
+        </article>
+        
+        <article class="paper-card cancer">
+            <div class="card-header">
+                
+                <span class="badge journal-badge">Hepatology</span>
+            </div>
+            <h2 class="title-ja">FGFR2遺伝子異常を有する既治療進行・転移性胆管癌に対するDerazantinibの第2相臨床試験：FIDES-01</h2>
+            <p class="title-en">A pivotal Phase 2 study of derazantinib for previously-treated, locally advanced or metastatic cholangiocarcinoma with FGFR2 aberrations: FIDES-01.</p>
+            <div class="meta-row">
+                <span>👤 Borad MJ et al.</span>
+                <span>📅 2026-Oct-27</span>
+                <a href="https://pubmed.ncbi.nlm.nih.gov/42937546" target="_blank" rel="noopener noreferrer" class="pmid-link">PMID: 42937546 ↗</a>
+            </div>
+            <div class="summary-box">
+                <div class="summary-item"><strong>研究デザイン:</strong> 多施設非盲検単群第2相臨床試験 / 146例（Substudy 1: 103例、Substudy 2: 43例）</div>
+                <div class="summary-item"><strong>主要結果:</strong> FGFR2融合/再構成群（Substudy 1）において奏効率（ORR）22.3%、病勢制御率（DCR）75.7%、無増悪生存期間（PFS）中央値8.1か月、全生存期間（OS）中央値17.2か月を達成。FGFR2変異/増幅群（Substudy 2）でも3か月PFS率63%、ORR 9.3%、DCR 69.8%であった。高リン血症（38%）や眼乾燥（36%）は認められたが、Grade 4以上の治療関連有害事象はなかった。</div>
+                <div class="summary-item"><strong>臨床的要点:</strong> Derazantinibは化学療法抵抗性のFGFR2融合のみならず変異や増幅を有する進行胆管癌に対しても有望な抗腫瘍効果と管理可能な安全性を示し、新たな分子標的治療の選択肢となる。</div>
+            </div>
+        </article>
+        
+        <article class="paper-card cancer">
+            <div class="card-header">
+                
+                <span class="badge journal-badge">Hepatology Communications</span>
+            </div>
+            <h2 class="title-ja">肝内胆管癌におけるゲノムおよび空間的免疫プロファイリングによる免疫不均一性とTIGIT高発現サブタイプの同定</h2>
+            <p class="title-en">Genomic and immune profiling characterizes immune heterogeneity and a TIGIT-associated subtype in intrahepatic cholangiocarcinoma.</p>
+            <div class="meta-row">
+                <span>👤 Korosteleva A et al.</span>
+                <span>📅 2026-Nov-01</span>
+                <a href="https://pubmed.ncbi.nlm.nih.gov/42900155" target="_blank" rel="noopener noreferrer" class="pmid-link">PMID: 42900155 ↗</a>
+            </div>
+            <div class="summary-box">
+                <div class="summary-item"><strong>研究デザイン:</strong> 後方視的トランスレーショナル研究 / 144例</div>
+                <div class="summary-item"><strong>主要結果:</strong> 微小環境分類により炎症型（47%）と非炎症型（53%）に層別化され、CDKN2A/B、TP53、BAP1などの変異プロファイルと予後に差を認めた。空間的免疫解析ではTIGITおよびPD-1が間質や浸潤先進部に集積。TIGIT高発現腫瘍はエフェクター機能やIFNシグナルの協調的活性化を示す免疫活性化分子サブタイプを形成していた。</div>
+                <div class="summary-item"><strong>臨床的要点:</strong> 肝内胆管癌における免疫チェックポイントの空間的微小環境不均一性が示され、TIGITが免疫チェックポイント阻害療法の有望な層別化バイオマーカーかつ治療標的となる可能性が示唆された。</div>
+            </div>
+        </article>
+        
+        <article class="paper-card cancer">
+            <div class="card-header">
+                
+                <span class="badge journal-badge">Hepatology Communications</span>
+            </div>
+            <h2 class="title-ja">胆管癌、混合型肝細胞癌-胆管癌、肝細胞癌における診断・予後・プレシジョン医療・免疫療法の分子バイオマーカー</h2>
+            <p class="title-en">Molecular biomarkers for diagnosis, prognosis, precision therapy, and immunotherapy in cholangiocarcinoma, cHCC-CCA, and HCC.</p>
+            <div class="meta-row">
+                <span>👤 Sun J et al.</span>
+                <span>📅 2026-Nov-01</span>
+                <a href="https://pubmed.ncbi.nlm.nih.gov/42878587" target="_blank" rel="noopener noreferrer" class="pmid-link">PMID: 42878587 ↗</a>
+            </div>
+            <div class="summary-box">
+                <div class="summary-item"><strong>研究デザイン:</strong> ナラティブ・レビュー</div>
+                <div class="summary-item"><strong>主要結果:</strong> 原発性肝癌のバイオマーカーを臨床的意思決定軸で整理。HCCが臨床背景依存であるのに対し、胆管癌（BTC）ではFGFR2融合、IDH1変異、HER2、BRAF V600E、MSI-H/dMMRなど標的可能なゲノム異常が多数同定されている。診断が複雑な混合型（cHCC-CCA）の取り扱いを含め、実臨床導入可能なマーカーと開発中の動的モニタリング技術を対比解説した。</div>
+                <div class="summary-item"><strong>臨床的要点:</strong> 胆道癌・肝癌領域における個別化医療の進展に伴い、網羅的ゲノムプロファイリング（CGP）の早期実施と、組織採取が制限される状況下でのリキッドバイオプシー等の実臨床応用が治療戦略決定に極めて重要である。</div>
+            </div>
+        </article>
+        
+        <article class="paper-card cancer">
+            <div class="card-header">
+                
+                <span class="badge journal-badge">Gastroenterology</span>
+            </div>
+            <h2 class="title-ja">胆管癌の分子サブタイプ分類とその橋渡し研究・トランスレーショナルな意義</h2>
+            <p class="title-en">Molecular Subtypes of Cholangiocarcinoma and Their Translational Implications.</p>
+            <div class="meta-row">
+                <span>👤 Braconi C et al.</span>
+                <span>📅 2026-Nov</span>
+                <a href="https://pubmed.ncbi.nlm.nih.gov/42442510" target="_blank" rel="noopener noreferrer" class="pmid-link">PMID: 42442510 ↗</a>
+            </div>
+            <div class="summary-box">
+                <div class="summary-item"><strong>研究デザイン:</strong> ナラティブ・レビュー</div>
+                <div class="summary-item"><strong>主要結果:</strong> 胆管癌の解剖学的分類（肝内・肝門部・遠位）は必ずしも生物学的特性と一致せず、小型胆管型（肝細胞可塑性・FGFR2/IDH1変異高頻度）や大型胆管型（ムチン産生・KRAS/TP53変異高頻度）などの分子病理サブタイプと密接に連動する。変異シグネチャー、エピジェネティクス、腫瘍微小環境の相互作用を整理し、現在実用化されている分子標的薬から将来の治療戦略までを包括的に概説した。</div>
+                <div class="summary-item"><strong>臨床的要点:</strong> 胆管癌治療は解剖学的区分から分子病理学的サブタイプに基づいた治療選択へと完全にパラダイムシフトしており、個別化標的治療を最大化するためのゲノム・エピゲノム統合理解が必須である。</div>
+            </div>
+        </article>
+        
+        <article class="paper-card cancer">
+            <div class="card-header">
+                
+                <span class="badge journal-badge">Pancreas</span>
+            </div>
+            <h2 class="title-ja">膵癌高リスク者に対するサーベイランスプログラムの実臨床における長期成績</h2>
+            <p class="title-en">Outcomes of Surveillance Program for Individuals at High-Risk of Pancreatic Adenocarcinoma.</p>
+            <div class="meta-row">
+                <span>👤 Penumalee LS et al.</span>
+                <span>📅 2026 Nov-Dec 01</span>
+                <a href="https://pubmed.ncbi.nlm.nih.gov/42397730" target="_blank" rel="noopener noreferrer" class="pmid-link">PMID: 42397730 ↗</a>
+            </div>
+            <div class="summary-box">
+                <div class="summary-item"><strong>研究デザイン:</strong> 単施設後方視コホート研究 / 316例（平均追跡2.5年）</div>
+                <div class="summary-item"><strong>主要結果:</strong> MRIおよび/またはEUSによるスクリーニングを実施。7例で膵癌が検出され、サーベイランス遵守例の6例は早期癌（ステージI: 4例、ステージII: 2例）で発見されたのに対し、非遵守例の1例は有症状のステージIIIで発見された。全体のサーベイランス遵守率は76.5%であり、病原性生殖細胞系列変異保有者で有意に高かった（p=0.02）。</div>
+                <div class="summary-item"><strong>臨床的要点:</strong> 膵癌高リスク群に対する定期的な画像・EUSサーベイランスは早期切除可能膵癌の拾い上げに有効であり、長期的な生命予後改善にはプログラムへの高いアドヒアランス維持が鍵となる。</div>
+            </div>
+        </article>
+        
+        <article class="paper-card cancer">
+            <div class="card-header">
+                
+                <span class="badge journal-badge">Pancreas</span>
+            </div>
+            <h2 class="title-ja">日本膵臓学会膵癌登録（NCD-JPCR）を用いた膵腫瘍の全国的動向と治療成績の変遷</h2>
+            <p class="title-en">Clinical Statistics and Outcomes of Pancreatic Neoplasms in Japan: A Retrospective Cohort Study Using the Japan Pancreatic Cancer Registry.</p>
+            <div class="meta-row">
+                <span>👤 Mizuma M et al.</span>
+                <span>📅 2026 Nov-Dec 01</span>
+                <a href="https://pubmed.ncbi.nlm.nih.gov/42348544" target="_blank" rel="noopener noreferrer" class="pmid-link">PMID: 42348544 ↗</a>
+            </div>
+            <div class="summary-box">
+                <div class="summary-item"><strong>研究デザイン:</strong> 全国レジストリ後方視的コホート研究 / 47,005例（2012〜2018年登録）</div>
+                <div class="summary-item"><strong>主要結果:</strong> 登録症例中、浸潤性膵管癌（IDC）が77.0%（36,204例）を占めた。IDC切除例の全生存期間中央値（mOS）は2012-2014年の29.7か月から2015-2018年には34.5か月へと有意に延長（p<0.0001）。非切除例においてもmOSは9.0か月から10.2か月へと有意に改善した（p<0.0001）。</div>
+                <div class="summary-item"><strong>臨床的要点:</strong> 日本全国規模の大規模データにおいて、集学的治療の進歩や術前・術後補助療法の普及に伴い、2010年代を通じて切除例・非切除例ともに膵癌の予後が着実に向上していることが示された。</div>
+            </div>
+        </article>
+        
+        <article class="paper-card cancer">
+            <div class="card-header">
+                
+                <span class="badge journal-badge">Pancreas</span>
+            </div>
+            <h2 class="title-ja">十二指腸乳頭部癌におけるバイオマーカーおよび治療標的としてのMET遺伝子の意義</h2>
+            <p class="title-en">Exploring the Role of MET Gene as a Potential Biomarker and Therapeutic Target in Ampullary Cancer.</p>
+            <div class="meta-row">
+                <span>👤 Apurva et al.</span>
+                <span>📅 2026 Nov-Dec 01</span>
+                <a href="https://pubmed.ncbi.nlm.nih.gov/42348518" target="_blank" rel="noopener noreferrer" class="pmid-link">PMID: 42348518 ↗</a>
+            </div>
+            <div class="summary-box">
+                <div class="summary-item"><strong>研究デザイン:</strong> 後方視的分子病理解析研究 / 61例</div>
+                <div class="summary-item"><strong>主要結果:</strong> 乳頭部癌の68.85%でMETプロモーターの低メチル化を認め、mRNA（67.21%）およびタンパク質（54%）の過剰発現と相関した。MET高発現は早期病期（p=0.003）および腸型（84.21% vs 膵胆管型61.76%）に多く認めた。またMETとHER2の共発現が有意に確認され（p=0.014）、受容体チロシンキナーゼのクロストークが示唆された。</div>
+                <div class="summary-item"><strong>臨床的要点:</strong> 十二指腸乳頭部癌においてMET経路の活性化およびHER2との共発現が高頻度に認められ、従来の抗がん剤治療に抵抗性の難治例に対する新規分子標的療法の複合戦略基盤となる。</div>
+            </div>
+        </article>
+        
+        <article class="paper-card cancer">
+            <div class="card-header">
+                
+                <span class="badge journal-badge">Journal of Gastroenterology</span>
+            </div>
+            <h2 class="title-ja">TP53遺伝子変異を有する進行胆道癌における臨床分子プロファイルと免疫チェックポイント阻害薬の高い治療効果</h2>
+            <p class="title-en">Clinico-molecular characteristics and enhanced efficacy of immune checkpoint inhibitors in TP53-mutated advanced biliary tract cancer.</p>
+            <div class="meta-row">
+                <span>👤 Shibuki T et al.</span>
+                <span>📅 2026-Nov</span>
+                <a href="https://pubmed.ncbi.nlm.nih.gov/42185502" target="_blank" rel="noopener noreferrer" class="pmid-link">PMID: 42185502 ↗</a>
+            </div>
+            <div class="summary-box">
+                <div class="summary-item"><strong>研究デザイン:</strong> 日米多施設後方視的コホート研究 / 336例</div>
+                <div class="summary-item"><strong>主要結果:</strong> 組織NGSにおいてTP53変異を52.7%に同定。TP53変異例は全体としてPFS短縮と関連（HR 1.32, p=0.04）したが、非ICI群ではPFS不良である一方、ICI併用群ではPFSが良好となり有意な交互作用が確認された（p<0.01）。トランスクリプトーム解析でもTP53変異腫瘍でTIDEスコアが低く免疫応答性が高いことが裏付けられた。</div>
+                <div class="summary-item"><strong>臨床的要点:</strong> TP53変異は進行胆道癌における陰性予後因子であると同時に、免疫チェックポイント阻害薬（ICI）の上乗せ効果を期待できる有望な効果予測バイオマーカーである。</div>
+            </div>
+        </article>
+        
+        <article class="paper-card cancer">
+            <div class="card-header">
+                
+                <span class="badge journal-badge">Journal of Gastroenterology</span>
+            </div>
+            <h2 class="title-ja">膵管腺癌における疼痛の病態生理、客観的評価法および集学的治療アプローチ</h2>
+            <p class="title-en">Pathophysiology, assessment, and treatment of pain in patients with pancreatic ductal adenocarcinoma.</p>
+            <div class="meta-row">
+                <span>👤 Faghih M et al.</span>
+                <span>📅 2026-Nov</span>
+                <a href="https://pubmed.ncbi.nlm.nih.gov/42068358" target="_blank" rel="noopener noreferrer" class="pmid-link">PMID: 42068358 ↗</a>
+            </div>
+            <div class="summary-box">
+                <div class="summary-item"><strong>研究デザイン:</strong> ナラティブ・レビュー</div>
+                <div class="summary-item"><strong>主要結果:</strong> 初診時60%以上に認める膵癌の疼痛は、神経浸潤、末梢神経再構築、中枢感作、神経免疫相互作用が関与する多次元的な病態である。WHO方式のオピオイド導入に加え、精神的併存症に対する抗うつ薬（SNRI/TCA）の併用、EUSガイド下腹腔神経叢ブロック/破壊術（CPN/CPG）や局所照射療法の適応と限界（特に進行期におけるCPGの予後への留意等）を体系的に整理した。</div>
+                <div class="summary-item"><strong>臨床的要点:</strong> 膵癌性疼痛は単なる侵害受容性疼痛ではなく神経障害性・中枢性感作機序が絡み合うため、オピオイド漸増のみに頼らず、精神的ケア、EUS神経ブロック、放射線治療を組み合わせた集学的アプローチが必須である。</div>
+            </div>
+        </article>
+        
+        <article class="paper-card cancer">
+            <div class="card-header">
+                
+                <span class="badge journal-badge">Hepatology</span>
+            </div>
+            <h2 class="title-ja">大規模ゲノムワイド関連解析（GWAS）と統合オミクスによる胆管癌およびその亜型の遺伝的感受性領域の同定</h2>
+            <p class="title-en">Uncovering the genetic landscape of cholangiocarcinoma and its subtypes via GWAS and integrative analyses.</p>
+            <div class="meta-row">
+                <span>👤 Han Y et al.</span>
+                <span>📅 2026-Nov-01</span>
+                <a href="https://pubmed.ncbi.nlm.nih.gov/41627892" target="_blank" rel="noopener noreferrer" class="pmid-link">PMID: 41627892 ↗</a>
+            </div>
+            <div class="summary-box">
+                <div class="summary-item"><strong>研究デザイン:</strong> ゲノムワイド関連解析（GWAS） / 胆管癌2,366例、対照11,750例</div>
+                <div class="summary-item"><strong>主要結果:</strong> 胆管癌全体と相関するHLA-DRB1/DQA1近傍の新規変異rs535777（OR 1.44）を同定。肝外胆管癌ではLINC02506のrs116224263（OR 0.17）およびHLA近傍のrs6914950（OR 1.63）が同定された。またPSC関連胆管癌ではHLA-DRA/DRB5近傍（OR 3.51）、非PSC関連ではTHSD7Aのrs142674434（OR 2.98）と、病型ごとに明確に異なる遺伝的基盤が解明された。</div>
+                <div class="summary-item"><strong>臨床的要点:</strong> 胆管癌の発症リスクにはHLA多型をはじめとする免疫遺伝学的背景が深く関与しており、PSC合併有無や解剖学的亜型ごとの遺伝的リスクプロファイルの解明が高リスク者の早期拾い上げに寄与する。</div>
+            </div>
+        </article>
+        
+        <article class="paper-card case-report">
+            <div class="card-header">
+                
+                <span class="badge journal-badge">Pancreas</span>
+            </div>
+            <h2 class="title-ja">原発性副甲状腺機能亢進症に起因する急性膵炎：症例報告および系統的レビュー</h2>
+            <p class="title-en">Primary Hyperparathyroidism-Induced Acute Pancreatitis: Case Report and Systematic Review.</p>
+            <div class="meta-row">
+                <span>👤 Che F et al.</span>
+                <span>📅 2026 Nov-Dec 01</span>
+                <a href="https://pubmed.ncbi.nlm.nih.gov/42549662" target="_blank" rel="noopener noreferrer" class="pmid-link">PMID: 42549662 ↗</a>
+            </div>
+            <div class="summary-box">
+                <div class="summary-item"><strong>研究デザイン:</strong> 症例報告および系統的レビュー（PRISMA準拠） / 自験例1例＋文献107例</div>
+                <div class="summary-item"><strong>主要結果:</strong> 高度高カルシウム血症（Ca 3.54 mmol/L）とPTH上昇（640.5 pg/mL）を契機に診断され、副甲状腺腺腫摘出術にて治癒した61歳男性急性膵炎例を報告。系統的レビュー（107例）では中央値Ca 3.25 mmol/L、88.8%で副甲状腺摘出術が施行されていた。クリーゼ例では早期手術、非クリーゼ重症例では膵炎軽快後同定入院中または2〜4週以内の手術により再発なく良好に経過していた。</div>
+                <div class="summary-item"><strong>臨床的要点:</strong> 特発性または再発性急性膵炎では常に原発性副甲状腺機能亢進症を念頭に置き、血清CaおよびPTHを測定すべきである。薬物安定化後の適切なタイミングでの副甲状腺摘出が確実な再発予防策となる。</div>
+            </div>
+        </article>
+        
+    </main>
+
+    <footer>
+        <p>&copy; 2026 Pancreatobiliary Journal Watch Weekly. All rights reserved.</p>
+    </footer>
+
+    <script>
+        function filterCategory(cat, btn) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            const cards = document.querySelectorAll('.paper-card');
+            cards.forEach(card => {
+                if (cat === 'all') {
+                    card.style.display = 'block';
+                } else {
+                    if (card.classList.contains(cat)) {
+                        card.style.display = 'block';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                }
+            });
+
+            // ★カテゴリ切り替え時にスムーズにページ最上部へ移動
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>
