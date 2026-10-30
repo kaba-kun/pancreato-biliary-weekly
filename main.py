@@ -233,7 +233,13 @@ def analyze_papers_with_gemini(papers):
                     raw_text = json_match.group(0)
                 
                 analyzed = json.loads(raw_text)
-                analyzed.sort(key=lambda x: CATEGORY_ORDER.get(x.get("category", ""), 99))
+                
+                # ★ソート順の変更: ⭐ TOP HIGHLIGHT (is_highlight==True) を最優先し、その後にカテゴリ順
+                analyzed.sort(key=lambda x: (
+                    0 if x.get("is_highlight") else 1,
+                    CATEGORY_ORDER.get(x.get("category", ""), 99)
+                ))
+                
                 print(f"解析成功！モデル [{model_name}] を使用しました。")
                 return analyzed
                 
@@ -312,7 +318,7 @@ def build_fixed_html(analyzed_papers, original_papers, date_str, archive_list, i
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>胆膵ジャーナルウォッチ Weekly | 主要29誌の最新臨床研究ダイジェスト</title>
-    <meta name="description" content="主要29誌から厳選した胆膵疾患・胆膵内視鏡領域の最新臨床研究（Original Article）ウィークリーダイッシュボード。">
+    <meta name="description" content="主要29誌から厳選した胆膵疾患・胆膵内視鏡領域の最新臨床研究（Original Article）ウィークリーダッシュボード。">
     <meta property="og:title" content="胆膵ジャーナルウォッチ Weekly">
     <meta property="og:description" content="主要29誌から厳選した胆膵領域の最新臨床研究・要約ダイジェスト。">
     <meta property="og:type" content="website">
@@ -503,6 +509,9 @@ def build_fixed_html(analyzed_papers, original_papers, date_str, archive_list, i
                     }}
                 }}
             }});
+
+            // ★カテゴリ切り替え時にスムーズにページ最上部へ移動
+            window.scrollTo({{ top: 0, behavior: 'smooth' }});
         }}
     </script>
 </body>
