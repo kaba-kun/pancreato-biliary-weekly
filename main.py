@@ -9,10 +9,10 @@ import xml.etree.ElementTree as ET
 from google import genai
 
 # ----------------------------------------------------
-# 対象29誌の厳選リスト（Web表示用きれいな名称）
+# 対象32誌の厳選リスト（Web表示用きれいな名称）
 # ----------------------------------------------------
 TARGET_JOURNALS = [
-    "N Engl J Med", "Lancet", "Journal of Hepatology",
+    "N Engl J Med", "Lancet", "JAMA", "JAMA Internal Medicine", "JAMA Surgery", "Journal of Hepatology",
     "Lancet Gastroenterology & Hepatology", "Gastroenterology", "Gut",
     "Hepatology", "Clinical Gastroenterology and Hepatology",
     "Endoscopy", "Liver Cancer", 
@@ -33,6 +33,9 @@ TARGET_JOURNALS = [
 EXACT_TARGET_JOURNALS = {
     "n engl j med", "new england journal of medicine", "the new england journal of medicine",
     "lancet", "the lancet",
+    "jama", "jama : the journal of the american medical association", "journal of the american medical association",
+    "jama internal medicine", "jama intern med",
+    "jama surgery", "jama surg",
     "journal of hepatology", "j hepatol",
     "lancet gastroenterology & hepatology", "lancet gastroenterol hepatol", "the lancet gastroenterology & hepatology",
     "gastroenterology",
@@ -72,7 +75,7 @@ CATEGORY_ORDER = {
 }
 
 # ----------------------------------------------------
-# 1. PubMedから「指定29誌」「指定7日間」の論文を取得 (POST方式)
+# 1. PubMedから「指定32誌」「指定7日間」の論文を取得 (POST方式)
 # ----------------------------------------------------
 def fetch_pubmed_papers():
     base_url = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils"
@@ -81,7 +84,7 @@ def fetch_pubmed_papers():
     # 胆膵領域のキーワード
     term_keywords = '("pancreatitis"[Title/Abstract] OR "pancreatic cancer"[Title/Abstract] OR "pancreatic ductal adenocarcinoma"[Title/Abstract] OR "PDAC"[Title/Abstract] OR "pancreatic carcinoma"[Title/Abstract] OR "pancreatic neuroendocrine tumor"[Title/Abstract] OR "PanNET"[Title/Abstract] OR "IPMN"[Title/Abstract] OR "intraductal papillary mucinous neoplasm"[Title/Abstract] OR "MCN"[Title/Abstract] OR "mucinous cystic neoplasm"[Title/Abstract] OR "SCN"[Title/Abstract] OR "serous cystic neoplasm"[Title/Abstract] OR "serous cystadenoma"[Title/Abstract] OR "pancreatic cyst"[Title/Abstract] OR "pancreatic cystic"[Title/Abstract] OR "autoimmune pancreatitis"[Title/Abstract] OR "AIP"[Title/Abstract] OR "pancreatic fistula"[Title/Abstract] OR "POPF"[Title/Abstract] OR "postoperative pancreatic fistula"[Title/Abstract] OR "pancreatic duct stricture"[Title/Abstract] OR "biliary"[Title/Abstract] OR "cholangiocarcinoma"[Title/Abstract] OR "biliary tract cancer"[Title/Abstract] OR "gallbladder cancer"[Title/Abstract] OR "gallbladder carcinoma"[Title/Abstract] OR "gallbladder disease"[Title/Abstract] OR "cholangitis"[Title/Abstract] OR "cholecystitis"[Title/Abstract] OR "choledocholithiasis"[Title/Abstract] OR "common bile duct stones"[Title/Abstract] OR "gallstone"[Title/Abstract] OR "PSC"[Title/Abstract] OR "primary sclerosing cholangitis"[Title/Abstract] OR "IgG4-related sclerosing cholangitis"[Title/Abstract] OR "choledochal cyst"[Title/Abstract] OR "biliary stricture"[Title/Abstract] OR "ampullary carcinoma"[Title/Abstract] OR "ampullary cancer"[Title/Abstract] OR "cancer of the ampulla of vater"[Title/Abstract] OR "ampullary adenoma"[Title/Abstract] OR "papillary carcinoma"[Title/Abstract] OR "papillary adenoma"[Title/Abstract] OR "papillary tumor"[Title/Abstract] OR "papilla of vater"[Title/Abstract] OR "papillectomy"[Title/Abstract] OR "endoscopic papillectomy"[Title/Abstract] OR "ERCP"[Title/Abstract] OR "endoscopic retrograde cholangiopancreatography"[Title/Abstract] OR "EUS"[Title/Abstract] OR "endoscopic ultrasound"[Title/Abstract] OR "endoscopic ultrasonography"[Title/Abstract] OR "FNA"[Title/Abstract] OR "fine needle aspiration"[Title/Abstract] OR "fine-needle aspiration"[Title/Abstract] OR "FNB"[Title/Abstract] OR "fine needle biopsy"[Title/Abstract] OR "fine-needle biopsy"[Title/Abstract] OR "EUS-TA"[Title/Abstract] OR "tissue acquisition"[Title/Abstract] OR "EUS-guided"[Title/Abstract] OR "sphincterotomy"[Title/Abstract] OR "EST"[Title/Abstract] OR "endoscopic sphincterotomy"[Title/Abstract] OR "EPBD"[Title/Abstract] OR "endoscopic papillary balloon dilation"[Title/Abstract] OR "EPLBD"[Title/Abstract] OR "endoscopic papillary large balloon dilation"[Title/Abstract] OR "cholangioscopy"[Title/Abstract] OR "pancreatoscopy"[Title/Abstract] OR "biliary stent"[Title/Abstract] OR "biliary stenting"[Title/Abstract] OR "pancreatic stent"[Title/Abstract] OR "pancreatic stenting"[Title/Abstract] OR "biliary drainage"[Title/Abstract] OR "pancreatic drainage"[Title/Abstract])'
     
-    # 対象誌の明確なフィルター（esearch時点で事前絞り込み）
+    # 対象誌の明確なフィルター
     journals_query = ' OR '.join([f'"{j}"[Journal]' for j in TARGET_JOURNALS])
     journal_filter = f'AND ({journals_query})'
     
@@ -119,7 +122,7 @@ def fetch_pubmed_papers():
         if not is_target:
             continue
 
-        # 表示名の正規化処理（文字数が長いジャーナル名から順に優先マッチング）
+        # 表示名の正規化処理（文字数が長いジャーナル名から優先マッチング）
         raw_journal = journal_title if journal_title else medline_ta
         display_journal = raw_journal.split(":")[0].split("...")[0].strip()
         
@@ -171,7 +174,7 @@ def fetch_pubmed_papers():
     return papers
 
 # ----------------------------------------------------
-# 2. Gemini APIで全件解析 (モデル候補順次切り替え ＋ 指数バックオフ)
+# 2. Gemini APIで全件解析
 # ----------------------------------------------------
 def analyze_papers_with_gemini(papers):
     client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
@@ -227,14 +230,13 @@ def analyze_papers_with_gemini(papers):
                 )
                 raw_text = response.text.strip()
                 
-                # 正規表現によるJSON配列抽出
                 json_match = re.search(r'\[.*\]', raw_text, re.DOTALL)
                 if json_match:
                     raw_text = json_match.group(0)
                 
                 analyzed = json.loads(raw_text)
                 
-                # ★ソート順の変更: ⭐ TOP HIGHLIGHT (is_highlight==True) を最優先し、その後にカテゴリ順
+                # ⭐ TOP HIGHLIGHT (is_highlight==True) を最優先し、その後にカテゴリ順
                 analyzed.sort(key=lambda x: (
                     0 if x.get("is_highlight") else 1,
                     CATEGORY_ORDER.get(x.get("category", ""), 99)
@@ -254,23 +256,35 @@ def analyze_papers_with_gemini(papers):
 # ----------------------------------------------------
 # 3. 完全固定のApple風HTMLテンプレートをレンダリングする
 # ----------------------------------------------------
-def build_fixed_html(analyzed_papers, original_papers, date_str, archive_list, is_root=True):
+def build_fixed_html(analyzed_papers, original_papers, date_str, latest_date, current_date, past_dates, prev_link, next_link, is_root=True):
     top_link = "index.html" if is_root else "../index.html"
     
+    # ドロップダウンオプションの構成 (重複排除＆移動の正常化)
     archive_options = []
     if is_root:
-        archive_options.append('<option value="index.html" selected>最新号 (最新)</option>')
-        for arch in archive_list:
-            archive_options.append(f'<option value="archives/{arch["filename"]}">{arch["date"]}</option>')
+        archive_options.append(f'<option value="index.html" selected>最新号 ({latest_date})</option>')
+        for p_date in past_dates:
+            archive_options.append(f'<option value="archives/weekly-{p_date}.html">{p_date}号</option>')
     else:
-        archive_options.append('<option value="../index.html">最新号 (最新)</option>')
-        for arch in archive_list:
-            if arch["date"] in date_str:
-                archive_options.append(f'<option value="{arch["filename"]}" selected>{arch["date"]}</option>')
+        archive_options.append(f'<option value="../index.html">最新号 ({latest_date})</option>')
+        for p_date in past_dates:
+            if p_date == current_date:
+                archive_options.append(f'<option value="weekly-{p_date}.html" selected>{p_date}号</option>')
             else:
-                archive_options.append(f'<option value="{arch["filename"]}">{arch["date"]}</option>')
+                archive_options.append(f'<option value="weekly-{p_date}.html">{p_date}号</option>')
 
     options_html = "\n".join(archive_options)
+
+    # 左右ナビゲーション矢印のHTML作成
+    if prev_link:
+        prev_button_html = f'<a href="{prev_link}" class="nav-arrow prev-arrow" title="前の週（過去号）へ">‹</a>'
+    else:
+        prev_button_html = '<span class="nav-arrow prev-arrow disabled">‹</span>'
+
+    if next_link:
+        next_button_html = f'<a href="{next_link}" class="nav-arrow next-arrow" title="次の週（最新方向）へ">›</a>'
+    else:
+        next_button_html = '<span class="nav-arrow next-arrow disabled">›</span>'
 
     id_to_orig = {p["id"]: p for p in original_papers}
 
@@ -317,10 +331,10 @@ def build_fixed_html(analyzed_papers, original_papers, date_str, archive_list, i
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>胆膵ジャーナルウォッチ Weekly | 主要29誌の最新臨床研究ダイジェスト</title>
-    <meta name="description" content="主要29誌から厳選した胆膵疾患・胆膵内視鏡領域の最新臨床研究（Original Article）ウィークリーダッシュボード。">
+    <title>胆膵ジャーナルウォッチ Weekly | 主要32誌の最新臨床研究ダイジェスト</title>
+    <meta name="description" content="主要32誌から厳選した胆膵疾患・胆膵内視鏡領域の最新臨床研究（Original Article）ウィークリーダッシュボード。">
     <meta property="og:title" content="胆膵ジャーナルウォッチ Weekly">
-    <meta property="og:description" content="主要29誌から厳選した胆膵領域の最新臨床研究・要約ダイジェスト。">
+    <meta property="og:description" content="主要32誌から厳選した胆膵領域の最新臨床研究・要約ダイジェスト。">
     <meta property="og:type" content="website">
     <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20100%20100'%3E%3Ctext%20y='.9em'%20font-size='90'%3E%F0%9F%94%AC%3C/text%3E%3C/svg%3E">
     <style>
@@ -408,6 +422,48 @@ def build_fixed_html(analyzed_papers, original_papers, date_str, archive_list, i
         
         main {{ max-width: 1000px; margin: 24px auto; padding: 0 24px; }}
         
+        /* 左右固定ナビゲーション矢印スタイル */
+        .nav-arrow {{
+            position: fixed;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 48px;
+            height: 48px;
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid var(--border-color);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            font-weight: 300;
+            color: var(--text-main);
+            text-decoration: none;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+            z-index: 90;
+            transition: all 0.2s ease;
+            user-select: none;
+        }}
+        .nav-arrow:hover {{
+            background: #ffffff;
+            color: var(--accent);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+            transform: translateY(-50%) scale(1.1);
+        }}
+        .nav-arrow.disabled {{
+            opacity: 0.2;
+            cursor: default;
+            pointer-events: none;
+            box-shadow: none;
+        }}
+        .prev-arrow {{ left: 24px; }}
+        .next-arrow {{ right: 24px; }}
+
+        @media (max-width: 1120px) {{
+            .prev-arrow {{ left: 8px; width: 38px; height: 38px; font-size: 22px; }}
+            .next-arrow {{ right: 8px; width: 38px; height: 38px; font-size: 22px; }}
+        }}
+
         .paper-card {{
             background: var(--card-bg);
             border-radius: 16px;
@@ -467,7 +523,7 @@ def build_fixed_html(analyzed_papers, original_papers, date_str, archive_list, i
                 <a href="{top_link}" class="site-title-link">
                     <div class="site-title">胆膵ジャーナルウォッチ Weekly</div>
                 </a>
-                <div class="sub-title">主要29誌から厳選した最新臨床研究ダイジェスト ({date_str})</div>
+                <div class="sub-title">主要32誌から厳選した最新臨床研究ダイジェスト ({date_str})</div>
             </div>
             <select onchange="location.href=this.value" class="archive-select">
                 {options_html}
@@ -483,6 +539,9 @@ def build_fixed_html(analyzed_papers, original_papers, date_str, archive_list, i
             <button class="tab-btn" onclick="filterCategory('case-report', this)">5. 症例報告</button>
         </nav>
     </header>
+
+    {prev_button_html}
+    {next_button_html}
 
     <main id="cards-container">
         {cards_html}
@@ -510,9 +569,20 @@ def build_fixed_html(analyzed_papers, original_papers, date_str, archive_list, i
                 }}
             }});
 
-            // ★カテゴリ切り替え時にスムーズにページ最上部へ移動
+            // カテゴリ切り替え時にスムーズに最上部へスクロール
             window.scrollTo({{ top: 0, behavior: 'smooth' }});
         }}
+
+        // キーボードの左右矢印キーでの前後週移動ショートカット
+        document.addEventListener('keydown', function(e) {{
+            if (e.key === 'ArrowLeft') {{
+                const prevBtn = document.querySelector('.prev-arrow:not(.disabled)');
+                if (prevBtn) prevBtn.click();
+            }} else if (e.key === 'ArrowRight') {{
+                const nextBtn = document.querySelector('.next-arrow:not(.disabled)');
+                if (nextBtn) nextBtn.click();
+            }}
+        }});
     </script>
 </body>
 </html>"""
@@ -524,28 +594,50 @@ def build_fixed_html(analyzed_papers, original_papers, date_str, archive_list, i
 def save_and_manage_archives(analyzed_papers, original_papers, date_display_str, date_file_str):
     os.makedirs("docs/archives", exist_ok=True)
     
+    # 既存のアーカイブHTMLを取得
     archive_files = sorted(glob.glob("docs/archives/weekly-*.html"), reverse=True)
-    archives = []
-    for file_path in archive_files[:52]:
+    
+    date_list = []
+    for file_path in archive_files:
         filename = os.path.basename(file_path)
         date_part = filename.replace("weekly-", "").replace(".html", "")
-        archives.append({
-            "date": date_part,
-            "filename": filename
-        })
+        if date_part not in date_list:
+            date_list.append(date_part)
+            
+    if date_file_str in date_list:
+        date_list.remove(date_file_str)
+    date_list.insert(0, date_file_str)
+    
+    date_list = date_list[:52] # 最大52週分保持
+    latest_date = date_list[0]
+    past_dates = date_list[1:] # 過去アーカイブのみのリスト
 
-    current_arch = {"date": date_file_str, "filename": f"weekly-{date_file_str}.html"}
-    if not any(a["date"] == date_file_str for a in archives):
-        archives.insert(0, current_arch)
-
-    root_html = build_fixed_html(analyzed_papers, original_papers, date_display_str, archives, is_root=True)
+    # --- 1. トップページ (docs/index.html) の生成 ---
+    root_prev_link = f"archives/weekly-{past_dates[0]}.html" if past_dates else None
+    root_next_link = None # 最新ページのため「次」は無し
+    
+    root_html = build_fixed_html(
+        analyzed_papers, original_papers, date_display_str,
+        latest_date=latest_date, current_date=latest_date, past_dates=past_dates,
+        prev_link=root_prev_link, next_link=root_next_link,
+        is_root=True
+    )
     with open("docs/index.html", "w", encoding="utf-8") as f:
         f.write(root_html)
 
-    archive_html = build_fixed_html(analyzed_papers, original_papers, date_display_str, archives, is_root=False)
+    # --- 2. アーカイブ用ページ (docs/archives/weekly-{date_file_str}.html) の生成 ---
+    arch_prev_link = f"weekly-{past_dates[0]}.html" if past_dates else None
+    arch_next_link = None # 最新号と同等のため「次」は無し
+    
+    arch_html = build_fixed_html(
+        analyzed_papers, original_papers, date_display_str,
+        latest_date=latest_date, current_date=date_file_str, past_dates=past_dates,
+        prev_link=arch_prev_link, next_link=arch_next_link,
+        is_root=False
+    )
     archive_path = os.path.join("docs/archives", f"weekly-{date_file_str}.html")
     with open(archive_path, "w", encoding="utf-8") as f:
-        f.write(archive_html)
+        f.write(arch_html)
 
 # ----------------------------------------------------
 # メイン実行処理
@@ -555,7 +647,7 @@ if __name__ == "__main__":
     date_display_str = today.strftime("%Y年%m月%d日週")
     date_file_str = today.strftime("%Y-%m-%d")
     
-    print(f"[{date_display_str}] 対象29誌からの臨床研究論文アーカイブの抽出を開始します...")
+    print(f"[{date_display_str}] 対象32誌からの臨床研究論文アーカイブの抽出を開始します...")
     
     papers = fetch_pubmed_papers()
     
