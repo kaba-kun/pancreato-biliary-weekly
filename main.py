@@ -81,8 +81,8 @@ def fetch_pubmed_papers():
     base_url = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils"
     headers = {"User-Agent": "PancreatobiliaryDigest/1.0"}
     
-    # 胆膵領域のキーワード
-    term_keywords = '("pancreatitis"[Title/Abstract] OR "pancreatic cancer"[Title/Abstract] OR "pancreatic ductal adenocarcinoma"[Title/Abstract] OR "PDAC"[Title/Abstract] OR "pancreatic carcinoma"[Title/Abstract] OR "pancreatic neuroendocrine tumor"[Title/Abstract] OR "PanNET"[Title/Abstract] OR "IPMN"[Title/Abstract] OR "intraductal papillary mucinous neoplasm"[Title/Abstract] OR "MCN"[Title/Abstract] OR "mucinous cystic neoplasm"[Title/Abstract] OR "SCN"[Title/Abstract] OR "serous cystic neoplasm"[Title/Abstract] OR "serous cystadenoma"[Title/Abstract] OR "pancreatic cyst"[Title/Abstract] OR "pancreatic cystic"[Title/Abstract] OR "autoimmune pancreatitis"[Title/Abstract] OR "AIP"[Title/Abstract] OR "pancreatic fistula"[Title/Abstract] OR "POPF"[Title/Abstract] OR "postoperative pancreatic fistula"[Title/Abstract] OR "pancreatic duct stricture"[Title/Abstract] OR "biliary"[Title/Abstract] OR "cholangiocarcinoma"[Title/Abstract] OR "biliary tract cancer"[Title/Abstract] OR "gallbladder cancer"[Title/Abstract] OR "gallbladder carcinoma"[Title/Abstract] OR "gallbladder disease"[Title/Abstract] OR "cholangitis"[Title/Abstract] OR "cholecystitis"[Title/Abstract] OR "choledocholithiasis"[Title/Abstract] OR "common bile duct stones"[Title/Abstract] OR "gallstone"[Title/Abstract] OR "PSC"[Title/Abstract] OR "primary sclerosing cholangitis"[Title/Abstract] OR "IgG4-related sclerosing cholangitis"[Title/Abstract] OR "choledochal cyst"[Title/Abstract] OR "biliary stricture"[Title/Abstract] OR "ampullary carcinoma"[Title/Abstract] OR "ampullary cancer"[Title/Abstract] OR "cancer of the ampulla of vater"[Title/Abstract] OR "ampullary adenoma"[Title/Abstract] OR "papillary carcinoma"[Title/Abstract] OR "papillary adenoma"[Title/Abstract] OR "papillary tumor"[Title/Abstract] OR "papilla of vater"[Title/Abstract] OR "papillectomy"[Title/Abstract] OR "endoscopic papillectomy"[Title/Abstract] OR "ERCP"[Title/Abstract] OR "endoscopic retrograde cholangiopancreatography"[Title/Abstract] OR "EUS"[Title/Abstract] OR "endoscopic ultrasound"[Title/Abstract] OR "endoscopic ultrasonography"[Title/Abstract] OR "FNA"[Title/Abstract] OR "fine needle aspiration"[Title/Abstract] OR "fine-needle aspiration"[Title/Abstract] OR "FNB"[Title/Abstract] OR "fine needle biopsy"[Title/Abstract] OR "fine-needle biopsy"[Title/Abstract] OR "EUS-TA"[Title/Abstract] OR "tissue acquisition"[Title/Abstract] OR "EUS-guided"[Title/Abstract] OR "sphincterotomy"[Title/Abstract] OR "EST"[Title/Abstract] OR "endoscopic sphincterotomy"[Title/Abstract] OR "EPBD"[Title/Abstract] OR "endoscopic papillary balloon dilation"[Title/Abstract] OR "EPLBD"[Title/Abstract] OR "endoscopic papillary large balloon dilation"[Title/Abstract] OR "cholangioscopy"[Title/Abstract] OR "pancreatoscopy"[Title/Abstract] OR "biliary stent"[Title/Abstract] OR "biliary stenting"[Title/Abstract] OR "pancreatic stent"[Title/Abstract] OR "pancreatic stenting"[Title/Abstract] OR "biliary drainage"[Title/Abstract] OR "pancreatic drainage"[Title/Abstract])'
+    # 胆膵領域のキーワード (PBC除外条件 NOT を含む)
+    term_keywords = '("pancreatitis"[Title/Abstract] OR "pancreatic cancer"[Title/Abstract] OR "pancreatic ductal adenocarcinoma"[Title/Abstract] OR "PDAC"[Title/Abstract] OR "pancreatic carcinoma"[Title/Abstract] OR "pancreatic neuroendocrine tumor"[Title/Abstract] OR "PanNET"[Title/Abstract] OR "IPMN"[Title/Abstract] OR "intraductal papillary mucinous neoplasm"[Title/Abstract] OR "MCN"[Title/Abstract] OR "mucinous cystic neoplasm"[Title/Abstract] OR "SCN"[Title/Abstract] OR "serous cystic neoplasm"[Title/Abstract] OR "serous cystadenoma"[Title/Abstract] OR "pancreatic cyst"[Title/Abstract] OR "pancreatic cystic"[Title/Abstract] OR "autoimmune pancreatitis"[Title/Abstract] OR "AIP"[Title/Abstract] OR "pancreatic fistula"[Title/Abstract] OR "POPF"[Title/Abstract] OR "postoperative pancreatic fistula"[Title/Abstract] OR "pancreatic duct stricture"[Title/Abstract] OR "biliary"[Title/Abstract] OR "cholangiocarcinoma"[Title/Abstract] OR "biliary tract cancer"[Title/Abstract] OR "gallbladder cancer"[Title/Abstract] OR "gallbladder carcinoma"[Title/Abstract] OR "gallbladder disease"[Title/Abstract] OR "cholangitis"[Title/Abstract] OR "cholecystitis"[Title/Abstract] OR "choledocholithiasis"[Title/Abstract] OR "common bile duct stones"[Title/Abstract] OR "gallstone"[Title/Abstract] OR "PSC"[Title/Abstract] OR "primary sclerosing cholangitis"[Title/Abstract] OR "IgG4-related sclerosing cholangitis"[Title/Abstract] OR "choledochal cyst"[Title/Abstract] OR "biliary stricture"[Title/Abstract] OR "ampullary carcinoma"[Title/Abstract] OR "ampullary cancer"[Title/Abstract] OR "cancer of the ampulla of vater"[Title/Abstract] OR "ampullary adenoma"[Title/Abstract] OR "papillary carcinoma"[Title/Abstract] OR "papillary adenoma"[Title/Abstract] OR "papillary tumor"[Title/Abstract] OR "papilla of vater"[Title/Abstract] OR "papillectomy"[Title/Abstract] OR "endoscopic papillectomy"[Title/Abstract] OR "ERCP"[Title/Abstract] OR "endoscopic retrograde cholangiopancreatography"[Title/Abstract] OR "EUS"[Title/Abstract] OR "endoscopic ultrasound"[Title/Abstract] OR "endoscopic ultrasonography"[Title/Abstract] OR "FNA"[Title/Abstract] OR "fine needle aspiration"[Title/Abstract] OR "fine-needle aspiration"[Title/Abstract] OR "FNB"[Title/Abstract] OR "fine needle biopsy"[Title/Abstract] OR "fine-needle biopsy"[Title/Abstract] OR "EUS-TA"[Title/Abstract] OR "tissue acquisition"[Title/Abstract] OR "EUS-guided"[Title/Abstract] OR "sphincterotomy"[Title/Abstract] OR "EST"[Title/Abstract] OR "endoscopic sphincterotomy"[Title/Abstract] OR "EPBD"[Title/Abstract] OR "endoscopic papillary balloon dilation"[Title/Abstract] OR "EPLBD"[Title/Abstract] OR "endoscopic papillary large balloon dilation"[Title/Abstract] OR "cholangioscopy"[Title/Abstract] OR "pancreatoscopy"[Title/Abstract] OR "biliary stent"[Title/Abstract] OR "biliary stenting"[Title/Abstract] OR "pancreatic stent"[Title/Abstract] OR "pancreatic stenting"[Title/Abstract] OR "biliary drainage"[Title/Abstract] OR "pancreatic drainage"[Title/Abstract]) NOT ("primary biliary cholangitis"[Title/Abstract] OR "primary biliary cirrhosis"[Title/Abstract] OR "PBC"[Title/Abstract])'
     
     # 対象誌の明確なフィルター
     journals_query = ' OR '.join([f'"{j}"[Journal]' for j in TARGET_JOURNALS])
@@ -154,12 +154,25 @@ def fetch_pubmed_papers():
         abstract_texts = article.findall(".//AbstractText")
         abstract = " ".join([elem.text for elem in abstract_texts if elem.text]).strip()
         
+        lower_title = title.lower()
         lower_abstract = abstract.lower()
+        full_text = f"{lower_title} {lower_abstract}"
+
         if not abstract or "no abstract available" in lower_abstract or len(abstract) < 50:
             continue
 
+        # 1. 基礎研究（マウス・ラット等）の除外
         if "mouse model" in lower_abstract or "mice" in lower_abstract or "rat model" in lower_abstract or "in vitro" in lower_abstract:
             continue
+
+        # 2. PBC（原発性胆汁性胆管炎・旧原発性胆汁性肝硬変）の完全除外
+        if "primary biliary cholangitis" in full_text or "primary biliary cirrhosis" in full_text or re.search(r'\bpbc\b', full_text):
+            continue
+
+        # 3. 門脈圧亢進症・静脈瘤単独論文の除外（対策A: 胆膵・内視鏡要素がないものを排除）
+        if ("varices" in lower_title or "variceal" in lower_title or "portal hypertension" in lower_title):
+            if not any(k in full_text for k in ["ercp", "eus", "endoscop", "pancreat", "cholangi", "gallbladder"]):
+                continue
 
         papers.append({
             "id": len(papers),
@@ -259,7 +272,6 @@ def analyze_papers_with_gemini(papers):
 def build_fixed_html(analyzed_papers, original_papers, date_str, latest_date, current_date, past_dates, prev_link, next_link, is_root=True):
     top_link = "index.html" if is_root else "../index.html"
     
-    # ドロップダウンオプションの構成 (重複排除＆移動の正常化)
     archive_options = []
     if is_root:
         archive_options.append(f'<option value="index.html" selected>最新号 ({latest_date})</option>')
@@ -275,7 +287,6 @@ def build_fixed_html(analyzed_papers, original_papers, date_str, latest_date, cu
 
     options_html = "\n".join(archive_options)
 
-    # 左右ナビゲーション矢印のHTML作成
     if prev_link:
         prev_button_html = f'<a href="{prev_link}" class="nav-arrow prev-arrow" title="前の週（過去号）へ">‹</a>'
     else:
@@ -422,7 +433,6 @@ def build_fixed_html(analyzed_papers, original_papers, date_str, latest_date, cu
         
         main {{ max-width: 1000px; margin: 24px auto; padding: 0 24px; }}
         
-        /* 左右固定ナビゲーション矢印スタイル */
         .nav-arrow {{
             position: fixed;
             top: 50%;
@@ -569,11 +579,9 @@ def build_fixed_html(analyzed_papers, original_papers, date_str, latest_date, cu
                 }}
             }});
 
-            // カテゴリ切り替え時にスムーズに最上部へスクロール
             window.scrollTo({{ top: 0, behavior: 'smooth' }});
         }}
 
-        // キーボードの左右矢印キーでの前後週移動ショートカット
         document.addEventListener('keydown', function(e) {{
             if (e.key === 'ArrowLeft') {{
                 const prevBtn = document.querySelector('.prev-arrow:not(.disabled)');
@@ -594,7 +602,6 @@ def build_fixed_html(analyzed_papers, original_papers, date_str, latest_date, cu
 def save_and_manage_archives(analyzed_papers, original_papers, date_display_str, date_file_str):
     os.makedirs("docs/archives", exist_ok=True)
     
-    # 既存のアーカイブHTMLを取得
     archive_files = sorted(glob.glob("docs/archives/weekly-*.html"), reverse=True)
     
     date_list = []
@@ -608,13 +615,13 @@ def save_and_manage_archives(analyzed_papers, original_papers, date_display_str,
         date_list.remove(date_file_str)
     date_list.insert(0, date_file_str)
     
-    date_list = date_list[:52] # 最大52週分保持
+    date_list = date_list[:52]
     latest_date = date_list[0]
-    past_dates = date_list[1:] # 過去アーカイブのみのリスト
+    past_dates = date_list[1:]
 
     # --- 1. トップページ (docs/index.html) の生成 ---
     root_prev_link = f"archives/weekly-{past_dates[0]}.html" if past_dates else None
-    root_next_link = None # 最新ページのため「次」は無し
+    root_next_link = None
     
     root_html = build_fixed_html(
         analyzed_papers, original_papers, date_display_str,
@@ -627,7 +634,7 @@ def save_and_manage_archives(analyzed_papers, original_papers, date_display_str,
 
     # --- 2. アーカイブ用ページ (docs/archives/weekly-{date_file_str}.html) の生成 ---
     arch_prev_link = f"weekly-{past_dates[0]}.html" if past_dates else None
-    arch_next_link = None # 最新号と同等のため「次」は無し
+    arch_next_link = None
     
     arch_html = build_fixed_html(
         analyzed_papers, original_papers, date_display_str,
