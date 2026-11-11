@@ -264,7 +264,7 @@ def analyze_papers_with_gemini(papers):
     raise RuntimeError("全無料モデルが一時的に混雑しています。GitHub Actionsの15分後再試行へ引き継ぎます。")
 
 # ----------------------------------------------------
-# 3. 完全固定のHTMLテンプレート（JSON動的ナビゲーション組み込み）
+# 3. 完全固定のHTMLテンプレート
 # ----------------------------------------------------
 def build_fixed_html(analyzed_papers, original_papers, date_str, current_date, is_root=True):
     top_link = "index.html" if is_root else "../index.html"
@@ -540,7 +540,6 @@ def build_fixed_html(analyzed_papers, original_papers, date_str, current_date, i
         const CURRENT_DATE = "{current_date}";
         const IS_ROOT = {"true" if is_root else "false"};
 
-        // JavaScriptによるarchives.jsonの動的読み込みとメニュー/矢印の構築
         fetch('{json_path}')
             .then(res => res.json())
             .then(dates => {{
@@ -551,7 +550,6 @@ def build_fixed_html(analyzed_papers, original_papers, date_str, current_date, i
                 const selectEl = document.getElementById('archive-select-dropdown');
                 selectEl.innerHTML = '';
 
-                // 1. ドロップダウン構築
                 const topPath = IS_ROOT ? 'index.html' : '../index.html';
                 const archPrefix = IS_ROOT ? 'archives/' : '';
 
@@ -569,7 +567,6 @@ def build_fixed_html(analyzed_papers, original_papers, date_str, current_date, i
                     selectEl.appendChild(opt);
                 }});
 
-                // 2. 左右矢印リンクの動的生成
                 const idx = dates.indexOf(CURRENT_DATE);
                 const prevDate = (idx >= 0 && idx < dates.length - 1) ? dates[idx + 1] : null;
                 const nextDate = (idx > 0) ? dates[idx - 1] : null;
@@ -632,7 +629,121 @@ def build_fixed_html(analyzed_papers, original_papers, date_str, current_date, i
     return full_html
 
 # ----------------------------------------------------
-# 4. アーカイブ管理・archives.json出力とファイル保存
+# 4. 既存の過去HTMLファイルをすべて最新プログラム構造へ書き換える自動処理
+# ----------------------------------------------------
+def upgrade_existing_archives():
+    archive_files = glob.glob("docs/archives/weekly-*.html")
+    if not archive_files:
+        return
+
+    new_js_code = """<script>
+        const CURRENT_DATE = "DATE_PLACEHOLDER";
+        const IS_ROOT = false;
+
+        fetch('../archives.json')
+            .then(res => res.json())
+            .then(dates => {
+                if (!dates || dates.length === 0) return;
+
+                const latestDate = dates[0];
+                const pastDates = dates.slice(1);
+                const selectEl = document.getElementById('archive-select-dropdown');
+                selectEl.innerHTML = '';
+
+                const topPath = '../index.html';
+                const archPrefix = '';
+
+                const optLatest = document.createElement('option');
+                optLatest.value = topPath;
+                optLatest.textContent = `最新号 (${latestDate})`;
+                if (CURRENT_DATE === latestDate) optLatest.selected = true;
+                selectEl.appendChild(optLatest);
+
+                pastDates.forEach(pDate => {
+                    const opt = document.createElement('option');
+                    opt.value = `weekly-${pDate}.html`;
+                    opt.textContent = `${pDate}号`;
+                    if (pDate === CURRENT_DATE) opt.selected = true;
+                    selectEl.appendChild(opt);
+                });
+
+                const idx = dates.indexOf(CURRENT_DATE);
+                const prevDate = (idx >= 0 && idx < dates.length - 1) ? dates[idx + 1] : null;
+                const nextDate = (idx > 0) ? dates[idx - 1] : null;
+
+                const arrowsContainer = document.getElementById('nav-arrows');
+                let prevHtml = '<span class="nav-arrow prev-arrow disabled">‹</span>';
+                let nextHtml = '<span class="nav-arrow next-arrow disabled">›</span>';
+
+                if (prevDate) {
+                    prevHtml = `<a href="weekly-${prevDate}.html" class="nav-arrow prev-arrow" title="前の週（過去号）へ">‹</a>`;
+                }
+
+                if (nextDate) {
+                    const nextUrl = (nextDate === latestDate) ? '../index.html' : `weekly-${nextDate}.html`;
+                    nextHtml = `<a href="${nextUrl}" class="nav-arrow next-arrow" title="次の週（最新方向）へ">›</a>`;
+                }
+
+                arrowsContainer.innerHTML = prevHtml + nextHtml;
+            })
+            .catch(err => console.error("Archive JSON load error:", err));
+
+        function filterCategory(cat, btn) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            const cards = document.querySelectorAll('.paper-card');
+            cards.forEach(card => {
+                if (cat === 'all') {
+                    card.style.display = 'block';
+                } else {
+                    if (card.classList.contains(cat)) {
+                        card.style.display = 'block';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                }
+            });
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'ArrowLeft') {
+                const prevBtn = document.querySelector('.prev-arrow:not(.disabled)');
+                if (prevBtn) prevBtn.click();
+            } else if (e.key === 'ArrowRight') {
+                const nextBtn = document.querySelector('.next-arrow:not(.disabled)');
+                if (nextBtn) nextBtn.click();
+            }
+        });
+    </script>"""
+
+    for file_path in archive_files:
+        filename = os.path.basename(file_path)
+        date_part = filename.replace("weekly-", "").replace(".html", "")
+
+        with open(file_path, "r", encoding="utf-8") as f:
+            content = f.read()
+
+        # ドロップダウン要素のID・シェル化
+        content = re.sub(r'<select.*?>.*?</select>', '<select id="archive-select-dropdown" onchange="location.href=this.value" class="archive-select"><option value="#">読み込み中...</option></select>', content, flags=re.DOTALL)
+
+        # 矢印コンテナのID・シェル化
+        if '<div id="nav-arrows">' not in content:
+            content = re.sub(r'</header>', '</header>\n\n    <div id="nav-arrows">\n        <span class="nav-arrow prev-arrow disabled">‹</span>\n        <span class="nav-arrow next-arrow disabled">›</span>\n    </div>', content)
+        else:
+            content = re.sub(r'<div id="nav-arrows">.*?</div>', '<div id="nav-arrows">\n        <span class="nav-arrow prev-arrow disabled">‹</span>\n        <span class="nav-arrow next-arrow disabled">›</span>\n    </div>', content, flags=re.DOTALL)
+
+        # JavaScript部分の一括アップグレード
+        file_js = new_js_code.replace("DATE_PLACEHOLDER", date_part)
+        content = re.sub(r'<script>.*?</script>', file_js, content, flags=re.DOTALL)
+
+        with open(file_path, "w", encoding="utf-8") as f:
+            f.write(content)
+
+# ----------------------------------------------------
+# 5. アーカイブ管理・archives.json出力とファイル保存
 # ----------------------------------------------------
 def save_and_manage_archives(analyzed_papers, original_papers, date_display_str, date_file_str):
     os.makedirs("docs/archives", exist_ok=True)
@@ -652,11 +763,11 @@ def save_and_manage_archives(analyzed_papers, original_papers, date_display_str,
     
     date_list = date_list[:52] # 最大52週分保持
 
-    # ★ 独立した archives.json を docs 直下へ出力
+    # 1. 独立した archives.json を docs 直下へ出力
     with open("docs/archives.json", "w", encoding="utf-8") as f:
         json.dump(date_list, f, ensure_ascii=False, indent=2)
 
-    # --- 1. トップページ (docs/index.html) の生成 ---
+    # 2. トップページ (docs/index.html) の生成
     root_html = build_fixed_html(
         analyzed_papers, original_papers, date_display_str,
         current_date=date_file_str, is_root=True
@@ -664,7 +775,7 @@ def save_and_manage_archives(analyzed_papers, original_papers, date_display_str,
     with open("docs/index.html", "w", encoding="utf-8") as f:
         f.write(root_html)
 
-    # --- 2. 今回実行分アーカイブページ (docs/archives/weekly-{date_file_str}.html) の生成 ---
+    # 3. 今回実行分アーカイブページ (docs/archives/weekly-{date_file_str}.html) の生成
     arch_html = build_fixed_html(
         analyzed_papers, original_papers, date_display_str,
         current_date=date_file_str, is_root=False
@@ -672,6 +783,9 @@ def save_and_manage_archives(analyzed_papers, original_papers, date_display_str,
     archive_path = os.path.join("docs/archives", f"weekly-{date_file_str}.html")
     with open(archive_path, "w", encoding="utf-8") as f:
         f.write(arch_html)
+
+    # 4. 過去に保存されたすべての既存アーカイブHTMLを自動的に最新プログラムへ一括アップグレード
+    upgrade_existing_archives()
 
 # ----------------------------------------------------
 # メイン実行処理
@@ -689,8 +803,8 @@ if __name__ == "__main__":
         print(f"対象ジャーナルより {len(papers)} 件の厳選臨床論文を取得しました。Geminiで解析中...")
         analyzed_papers = analyze_papers_with_gemini(papers)
         
-        print("最新ページおよびアーカイブHTMLを生成中...")
+        print("最新ページ生成および過去の全アーカイブHTMLを最新プログラムにアップグレード中...")
         save_and_manage_archives(analyzed_papers, papers, date_display_str, date_file_str)
-        print("ウィークリーアップデートおよび archives.json の更新が完全成功しました！")
+        print("ウィークリーアップデートおよび全アーカイブの同期アップグレードが完全成功しました！")
     else:
         print("今週の対象論文が見つかりませんでした。")
