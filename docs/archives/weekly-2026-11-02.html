@@ -197,9 +197,7 @@
                 </a>
                 <div class="sub-title">主要32誌から厳選した最新臨床研究ダイジェスト (2026年11月02日週)</div>
             </div>
-            <select onchange="location.href=this.value" class="archive-select">
-                <option value="../index.html">最新号 (2026-11-02)</option>
-            </select>
+            <select id="archive-select-dropdown" onchange="location.href=this.value" class="archive-select"><option value="#">読み込み中...</option></select>
         </div>
         <nav class="tabs-nav">
             <button class="tab-btn active" onclick="filterCategory('all', this)">すべて</button>
@@ -211,6 +209,11 @@
             <button class="tab-btn" onclick="filterCategory('case-report', this)">5. 症例報告</button>
         </nav>
     </header>
+
+    <div id="nav-arrows">
+        <span class="nav-arrow prev-arrow disabled">‹</span>
+        <span class="nav-arrow next-arrow disabled">›</span>
+    </div>
 
     <span class="nav-arrow prev-arrow disabled">‹</span>
     <span class="nav-arrow next-arrow disabled">›</span>
@@ -927,6 +930,57 @@
     </footer>
 
     <script>
+        const CURRENT_DATE = "2026-11-02";
+        const IS_ROOT = false;
+
+        fetch('../archives.json')
+            .then(res => res.json())
+            .then(dates => {
+                if (!dates || dates.length === 0) return;
+
+                const latestDate = dates[0];
+                const pastDates = dates.slice(1);
+                const selectEl = document.getElementById('archive-select-dropdown');
+                selectEl.innerHTML = '';
+
+                const topPath = '../index.html';
+                const archPrefix = '';
+
+                const optLatest = document.createElement('option');
+                optLatest.value = topPath;
+                optLatest.textContent = `最新号 (${latestDate})`;
+                if (CURRENT_DATE === latestDate) optLatest.selected = true;
+                selectEl.appendChild(optLatest);
+
+                pastDates.forEach(pDate => {
+                    const opt = document.createElement('option');
+                    opt.value = `weekly-${pDate}.html`;
+                    opt.textContent = `${pDate}号`;
+                    if (pDate === CURRENT_DATE) opt.selected = true;
+                    selectEl.appendChild(opt);
+                });
+
+                const idx = dates.indexOf(CURRENT_DATE);
+                const prevDate = (idx >= 0 && idx < dates.length - 1) ? dates[idx + 1] : null;
+                const nextDate = (idx > 0) ? dates[idx - 1] : null;
+
+                const arrowsContainer = document.getElementById('nav-arrows');
+                let prevHtml = '<span class="nav-arrow prev-arrow disabled">‹</span>';
+                let nextHtml = '<span class="nav-arrow next-arrow disabled">›</span>';
+
+                if (prevDate) {
+                    prevHtml = `<a href="weekly-${prevDate}.html" class="nav-arrow prev-arrow" title="前の週（過去号）へ">‹</a>`;
+                }
+
+                if (nextDate) {
+                    const nextUrl = (nextDate === latestDate) ? '../index.html' : `weekly-${nextDate}.html`;
+                    nextHtml = `<a href="${nextUrl}" class="nav-arrow next-arrow" title="次の週（最新方向）へ">›</a>`;
+                }
+
+                arrowsContainer.innerHTML = prevHtml + nextHtml;
+            })
+            .catch(err => console.error("Archive JSON load error:", err));
+
         function filterCategory(cat, btn) {
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
@@ -944,11 +998,9 @@
                 }
             });
 
-            // カテゴリ切り替え時にスムーズに最上部へスクロール
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        // キーボードの左右矢印キーでの前後週移動ショートカット
         document.addEventListener('keydown', function(e) {
             if (e.key === 'ArrowLeft') {
                 const prevBtn = document.querySelector('.prev-arrow:not(.disabled)');
