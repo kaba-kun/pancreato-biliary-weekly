@@ -122,7 +122,7 @@ def fetch_pubmed_papers():
         if not is_target:
             continue
 
-        # 表示名の正規化処理（文字数が長いジャーナル名から優先マッチング）
+        # 表示名の正規化処理
         raw_journal = journal_title if journal_title else medline_ta
         display_journal = raw_journal.split(":")[0].split("...")[0].strip()
         
@@ -161,15 +161,15 @@ def fetch_pubmed_papers():
         if not abstract or "no abstract available" in lower_abstract or len(abstract) < 50:
             continue
 
-        # 1. 基礎研究（マウス・ラット等）の除外
+        # 基礎研究の除外
         if "mouse model" in lower_abstract or "mice" in lower_abstract or "rat model" in lower_abstract or "in vitro" in lower_abstract:
             continue
 
-        # 2. PBC（原発性胆汁性胆管炎・旧原発性胆汁性肝硬変）の完全除外
+        # PBCの完全除外
         if "primary biliary cholangitis" in full_text or "primary biliary cirrhosis" in full_text or re.search(r'\bpbc\b', full_text):
             continue
 
-        # 3. 門脈圧亢進症・静脈瘤単独論文の除外（対策A: 胆膵・内視鏡要素がないものを排除）
+        # 門脈圧亢進症・静脈瘤単独論文の除外
         if ("varices" in lower_title or "variceal" in lower_title or "portal hypertension" in lower_title):
             if not any(k in full_text for k in ["ercp", "eus", "endoscop", "pancreat", "cholangi", "gallbladder"]):
                 continue
@@ -248,13 +248,10 @@ def analyze_papers_with_gemini(papers):
                     raw_text = json_match.group(0)
                 
                 analyzed = json.loads(raw_text)
-                
-                # ⭐ TOP HIGHLIGHT (is_highlight==True) を最優先し、その後にカテゴリ順
                 analyzed.sort(key=lambda x: (
                     0 if x.get("is_highlight") else 1,
                     CATEGORY_ORDER.get(x.get("category", ""), 99)
                 ))
-                
                 print(f"解析成功！モデル [{model_name}] を使用しました。")
                 return analyzed
                 
@@ -267,35 +264,11 @@ def analyze_papers_with_gemini(papers):
     raise RuntimeError("全無料モデルが一時的に混雑しています。GitHub Actionsの15分後再試行へ引き継ぎます。")
 
 # ----------------------------------------------------
-# 3. 完全固定のApple風HTMLテンプレートをレンダリングする
+# 3. 完全固定のHTMLテンプレート（JSON動的ナビゲーション組み込み）
 # ----------------------------------------------------
-def build_fixed_html(analyzed_papers, original_papers, date_str, latest_date, current_date, past_dates, prev_link, next_link, is_root=True):
+def build_fixed_html(analyzed_papers, original_papers, date_str, current_date, is_root=True):
     top_link = "index.html" if is_root else "../index.html"
-    
-    archive_options = []
-    if is_root:
-        archive_options.append(f'<option value="index.html" selected>最新号 ({latest_date})</option>')
-        for p_date in past_dates:
-            archive_options.append(f'<option value="archives/weekly-{p_date}.html">{p_date}号</option>')
-    else:
-        archive_options.append(f'<option value="../index.html">最新号 ({latest_date})</option>')
-        for p_date in past_dates:
-            if p_date == current_date:
-                archive_options.append(f'<option value="weekly-{p_date}.html" selected>{p_date}号</option>')
-            else:
-                archive_options.append(f'<option value="weekly-{p_date}.html">{p_date}号</option>')
-
-    options_html = "\n".join(archive_options)
-
-    if prev_link:
-        prev_button_html = f'<a href="{prev_link}" class="nav-arrow prev-arrow" title="前の週（過去号）へ">‹</a>'
-    else:
-        prev_button_html = '<span class="nav-arrow prev-arrow disabled">‹</span>'
-
-    if next_link:
-        next_button_html = f'<a href="{next_link}" class="nav-arrow next-arrow" title="次の週（最新方向）へ">›</a>'
-    else:
-        next_button_html = '<span class="nav-arrow next-arrow disabled">›</span>'
+    json_path = "archives.json" if is_root else "../archives.json"
 
     id_to_orig = {p["id"]: p for p in original_papers}
 
@@ -535,8 +508,8 @@ def build_fixed_html(analyzed_papers, original_papers, date_str, latest_date, cu
                 </a>
                 <div class="sub-title">主要32誌から厳選した最新臨床研究ダイジェスト ({date_str})</div>
             </div>
-            <select onchange="location.href=this.value" class="archive-select">
-                {options_html}
+            <select id="archive-select-dropdown" onchange="location.href=this.value" class="archive-select">
+                <option value="#">読み込み中...</option>
             </select>
         </div>
         <nav class="tabs-nav">
@@ -550,8 +523,10 @@ def build_fixed_html(analyzed_papers, original_papers, date_str, latest_date, cu
         </nav>
     </header>
 
-    {prev_button_html}
-    {next_button_html}
+    <div id="nav-arrows">
+        <span class="nav-arrow prev-arrow disabled">‹</span>
+        <span class="nav-arrow next-arrow disabled">›</span>
+    </div>
 
     <main id="cards-container">
         {cards_html}
@@ -562,6 +537,66 @@ def build_fixed_html(analyzed_papers, original_papers, date_str, latest_date, cu
     </footer>
 
     <script>
+        const CURRENT_DATE = "{current_date}";
+        const IS_ROOT = {"true" if is_root else "false"};
+
+        // JavaScriptによるarchives.jsonの動的読み込みとメニュー/矢印の構築
+        fetch('{json_path}')
+            .then(res => res.json())
+            .then(dates => {{
+                if (!dates || dates.length === 0) return;
+
+                const latestDate = dates[0];
+                const pastDates = dates.slice(1);
+                const selectEl = document.getElementById('archive-select-dropdown');
+                selectEl.innerHTML = '';
+
+                // 1. ドロップダウン構築
+                const topPath = IS_ROOT ? 'index.html' : '../index.html';
+                const archPrefix = IS_ROOT ? 'archives/' : '';
+
+                const optLatest = document.createElement('option');
+                optLatest.value = topPath;
+                optLatest.textContent = `最新号 (${{latestDate}})`;
+                if (CURRENT_DATE === latestDate) optLatest.selected = true;
+                selectEl.appendChild(optLatest);
+
+                pastDates.forEach(pDate => {{
+                    const opt = document.createElement('option');
+                    opt.value = `${{archPrefix}}weekly-${{pDate}}.html`;
+                    opt.textContent = `${{pDate}}号`;
+                    if (pDate === CURRENT_DATE) opt.selected = true;
+                    selectEl.appendChild(opt);
+                }});
+
+                // 2. 左右矢印リンクの動的生成
+                const idx = dates.indexOf(CURRENT_DATE);
+                const prevDate = (idx >= 0 && idx < dates.length - 1) ? dates[idx + 1] : null;
+                const nextDate = (idx > 0) ? dates[idx - 1] : null;
+
+                const arrowsContainer = document.getElementById('nav-arrows');
+                let prevHtml = '<span class="nav-arrow prev-arrow disabled">‹</span>';
+                let nextHtml = '<span class="nav-arrow next-arrow disabled">›</span>';
+
+                if (prevDate) {{
+                    const prevUrl = IS_ROOT ? `archives/weekly-${{prevDate}}.html` : `weekly-${{prevDate}}.html`;
+                    prevHtml = `<a href="${{prevUrl}}" class="nav-arrow prev-arrow" title="前の週（過去号）へ">‹</a>`;
+                }}
+
+                if (nextDate) {{
+                    let nextUrl = '';
+                    if (IS_ROOT) {{
+                        nextUrl = `archives/weekly-${{nextDate}}.html`;
+                    }} else {{
+                        nextUrl = (nextDate === latestDate) ? '../index.html' : `weekly-${{nextDate}}.html`;
+                    }}
+                    nextHtml = `<a href="${{nextUrl}}" class="nav-arrow next-arrow" title="次の週（最新方向）へ">›</a>`;
+                }}
+
+                arrowsContainer.innerHTML = prevHtml + nextHtml;
+            }})
+            .catch(err => console.error("Archive JSON load error:", err));
+
         function filterCategory(cat, btn) {{
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
@@ -597,7 +632,7 @@ def build_fixed_html(analyzed_papers, original_papers, date_str, latest_date, cu
     return full_html
 
 # ----------------------------------------------------
-# 4. アーカイブ管理とファイル保存
+# 4. アーカイブ管理・archives.json出力とファイル保存
 # ----------------------------------------------------
 def save_and_manage_archives(analyzed_papers, original_papers, date_display_str, date_file_str):
     os.makedirs("docs/archives", exist_ok=True)
@@ -615,32 +650,24 @@ def save_and_manage_archives(analyzed_papers, original_papers, date_display_str,
         date_list.remove(date_file_str)
     date_list.insert(0, date_file_str)
     
-    date_list = date_list[:52]
-    latest_date = date_list[0]
-    past_dates = date_list[1:]
+    date_list = date_list[:52] # 最大52週分保持
+
+    # ★ 独立した archives.json を docs 直下へ出力
+    with open("docs/archives.json", "w", encoding="utf-8") as f:
+        json.dump(date_list, f, ensure_ascii=False, indent=2)
 
     # --- 1. トップページ (docs/index.html) の生成 ---
-    root_prev_link = f"archives/weekly-{past_dates[0]}.html" if past_dates else None
-    root_next_link = None
-    
     root_html = build_fixed_html(
         analyzed_papers, original_papers, date_display_str,
-        latest_date=latest_date, current_date=latest_date, past_dates=past_dates,
-        prev_link=root_prev_link, next_link=root_next_link,
-        is_root=True
+        current_date=date_file_str, is_root=True
     )
     with open("docs/index.html", "w", encoding="utf-8") as f:
         f.write(root_html)
 
-    # --- 2. アーカイブ用ページ (docs/archives/weekly-{date_file_str}.html) の生成 ---
-    arch_prev_link = f"weekly-{past_dates[0]}.html" if past_dates else None
-    arch_next_link = None
-    
+    # --- 2. 今回実行分アーカイブページ (docs/archives/weekly-{date_file_str}.html) の生成 ---
     arch_html = build_fixed_html(
         analyzed_papers, original_papers, date_display_str,
-        latest_date=latest_date, current_date=date_file_str, past_dates=past_dates,
-        prev_link=arch_prev_link, next_link=arch_next_link,
-        is_root=False
+        current_date=date_file_str, is_root=False
     )
     archive_path = os.path.join("docs/archives", f"weekly-{date_file_str}.html")
     with open(archive_path, "w", encoding="utf-8") as f:
@@ -662,8 +689,8 @@ if __name__ == "__main__":
         print(f"対象ジャーナルより {len(papers)} 件の厳選臨床論文を取得しました。Geminiで解析中...")
         analyzed_papers = analyze_papers_with_gemini(papers)
         
-        print("最新ページおよびアーカイブHTMLを書き換え中...")
+        print("最新ページおよびアーカイブHTMLを生成中...")
         save_and_manage_archives(analyzed_papers, papers, date_display_str, date_file_str)
-        print("ウィークリーアップデートが完全成功しました！")
+        print("ウィークリーアップデートおよび archives.json の更新が完全成功しました！")
     else:
         print("今週の対象論文が見つかりませんでした。")
